@@ -4,10 +4,23 @@
 
 <!--
 ==============================================================================
-  DEVIS / BON DE COMMANDE — MISE EN PAGE A4 PREMIUM
+  DEVIS / BON DE COMMANDE — MISE EN PAGE A4 — CHARTE TER
   Module  : sale_quotation_layout
   Odoo    : v18.0
-  Palette : Navy #1B3A5C · Bleu #2C6FAC · Ciel #EBF3FB · Gris #7F8C8D
+
+  Palette TER (Planche récapitulative)
+  ──────────────────────────────────────────────────────────────────────────
+  Navy (Pantone 2965 C)   #253758   R:37  G:55  B:88   → Titres, en-têtes
+  Rouge (Pantone 186 C)   #C81628   R:200 G:22  B:40   → Accents, remises
+  Crème / fond clair      #F4F1EA                       → Fonds alternés
+  Gris (Pantone 440 C)    #949494                       → Labels secondaires
+  Anthracite (P. 447 C)   #252525                       → Corps de texte
+  Gris clair (CG 2 C)     #D2CCC2                       → Bordures subtiles
+
+  Typographies
+  ──────────────────────────────────────────────────────────────────────────
+  Futura  → 'Century Gothic', Trebuchet MS, Arial (fallback PDF)
+  Verdana → Verdana, Geneva, sans-serif
 ==============================================================================
 -->
 
@@ -16,61 +29,80 @@
         <t t-set="doc" t-value="doc.with_context(lang=doc.partner_id.lang)"/>
 
         <!-- ================================================================
-             BLOC D'INFORMATION (coin supérieur droit de l'en-tête)
-             Contient : type de document, numéro, date, validité, ref. client
+             BLOC D'INFORMATION — coin supérieur droit de l'en-tête
              ================================================================ -->
         <t t-set="information_block">
-            <div style="font-family: Arial, Helvetica, sans-serif; font-size: 9pt; line-height: 1.5; min-width: 160px;">
+            <div style="font-family: Verdana, Geneva, sans-serif;
+                        font-size: 8.5pt; line-height: 1.5; min-width: 170px;">
 
-                <!-- Type de document -->
-                <div style="font-size: 8pt; color: #7F8C8D; text-transform: uppercase;
-                            letter-spacing: 1.5px; font-weight: bold; margin-bottom: 2px;">
+                <!-- Type de document (style Futura) -->
+                <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                            font-size: 7pt; color: #949494;
+                            text-transform: uppercase; letter-spacing: 2px;
+                            font-weight: bold; margin-bottom: 3px;">
                     <t t-if="doc.state in ('sale', 'done')">Bon de Commande</t>
                     <t t-else="">Devis</t>
                 </div>
 
                 <!-- Numéro du document -->
-                <div style="font-size: 15pt; font-weight: bold; color: #1B3A5C;
-                            letter-spacing: 0.5px; margin-bottom: 8px;">
+                <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                            font-size: 16pt; font-weight: bold;
+                            color: #253758; letter-spacing: 0.5px; margin-bottom: 2px;">
                     <span t-field="doc.name"/>
                 </div>
 
+                <!-- Trait rouge sous le numéro -->
+                <div style="border-top: 2px solid #C81628;
+                            width: 40px; margin-bottom: 10px;"></div>
+
                 <!-- Métadonnées -->
-                <table style="border-collapse: collapse; width: 100%; font-size: 8.5pt;">
+                <table style="border-collapse: collapse; width: 100%; font-size: 8pt;">
                     <tr>
-                        <td style="color: #7F8C8D; padding: 2px 10px 2px 0; white-space: nowrap;">
-                            Date :
+                        <td style="color: #949494; padding: 2px 10px 2px 0;
+                                   white-space: nowrap; font-family: 'Century Gothic',
+                                   Trebuchet MS, Arial, sans-serif; font-size: 7pt;
+                                   text-transform: uppercase; letter-spacing: 0.5px;">
+                            Date
                         </td>
-                        <td style="font-weight: bold; color: #2C3E50; white-space: nowrap;">
+                        <td style="font-weight: bold; color: #252525; white-space: nowrap;">
                             <span t-field="doc.date_order" t-options='{"widget": "date"}'/>
                         </td>
                     </tr>
                     <t t-if="doc.validity_date">
                         <tr>
-                            <td style="color: #7F8C8D; padding: 2px 10px 2px 0; white-space: nowrap;">
-                                Validité :
+                            <td style="color: #949494; padding: 2px 10px 2px 0;
+                                       white-space: nowrap; font-family: 'Century Gothic',
+                                       Trebuchet MS, Arial, sans-serif; font-size: 7pt;
+                                       text-transform: uppercase; letter-spacing: 0.5px;">
+                                Validité
                             </td>
-                            <td style="font-weight: bold; color: #2C3E50; white-space: nowrap;">
+                            <td style="font-weight: bold; color: #252525; white-space: nowrap;">
                                 <span t-field="doc.validity_date"/>
                             </td>
                         </tr>
                     </t>
                     <t t-if="doc.client_order_ref">
                         <tr>
-                            <td style="color: #7F8C8D; padding: 2px 10px 2px 0; white-space: nowrap;">
-                                Votre réf. :
+                            <td style="color: #949494; padding: 2px 10px 2px 0;
+                                       white-space: nowrap; font-family: 'Century Gothic',
+                                       Trebuchet MS, Arial, sans-serif; font-size: 7pt;
+                                       text-transform: uppercase; letter-spacing: 0.5px;">
+                                Votre réf.
                             </td>
-                            <td style="font-weight: bold; color: #2C6FAC; white-space: nowrap;">
+                            <td style="font-weight: bold; color: #C81628; white-space: nowrap;">
                                 <span t-field="doc.client_order_ref"/>
                             </td>
                         </tr>
                     </t>
                     <t t-if="doc.user_id">
                         <tr>
-                            <td style="color: #7F8C8D; padding: 2px 10px 2px 0; white-space: nowrap;">
-                                Commercial :
+                            <td style="color: #949494; padding: 2px 10px 2px 0;
+                                       white-space: nowrap; font-family: 'Century Gothic',
+                                       Trebuchet MS, Arial, sans-serif; font-size: 7pt;
+                                       text-transform: uppercase; letter-spacing: 0.5px;">
+                                Contact
                             </td>
-                            <td style="font-weight: bold; color: #2C3E50;">
+                            <td style="font-weight: bold; color: #252525;">
                                 <span t-field="doc.user_id"/>
                             </td>
                         </tr>
@@ -86,46 +118,55 @@
 
             <!-- ── CSS ─────────────────────────────────────────────────── -->
             <style type="text/css">
-                /* Base */
+
+                /* ── Base ── */
                 .page {
-                    font-family: Arial, Helvetica, sans-serif;
-                    font-size: 9pt;
-                    color: #2C3E50;
-                    line-height: 1.4;
+                    font-family: Verdana, Geneva, sans-serif;
+                    font-size: 8.5pt;
+                    color: #252525;
+                    line-height: 1.45;
+                }
+                .f-futura {
+                    font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
                 }
 
-                /* Séparateur haut de page */
-                .hr-top {
+                /* ── Double séparateur TER (navy + rouge) ── */
+                .hr-navy {
                     border: none;
-                    border-top: 3px solid #1B3A5C;
-                    margin: 10px 0 16px 0;
+                    border-top: 4px solid #253758;
+                    margin: 8px 0 0 0;
+                }
+                .hr-red {
+                    border: none;
+                    border-top: 1.5px solid #C81628;
+                    margin: 0 0 18px 0;
                 }
 
-                /* ── Barre conditions commerciales ── */
+                /* ── Barre de conditions commerciales ── */
                 .conditions-bar {
-                    background-color: #EBF3FB;
-                    border: 1px solid #AED6F1;
-                    border-left: 4px solid #2C6FAC;
-                    border-radius: 0 4px 4px 0;
-                    padding: 9px 14px;
+                    background-color: #F4F1EA;
+                    border: 1px solid #D2CCC2;
+                    border-left: 5px solid #253758;
+                    padding: 10px 14px;
                     margin-bottom: 20px;
                 }
                 .cond-label {
-                    font-size: 7pt;
-                    color: #2C6FAC;
+                    font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                    font-size: 6.5pt;
+                    color: #253758;
                     text-transform: uppercase;
                     font-weight: bold;
-                    letter-spacing: 0.5px;
+                    letter-spacing: 1px;
                     display: block;
-                    margin-bottom: 2px;
+                    margin-bottom: 3px;
                 }
                 .cond-value {
                     font-size: 8.5pt;
-                    color: #2C3E50;
+                    color: #252525;
                     display: block;
                 }
                 .cond-sep {
-                    border-left: 1px solid #AED6F1;
+                    border-left: 1px solid #D2CCC2;
                     padding: 0 14px;
                 }
                 .cond-sep-first {
@@ -140,67 +181,76 @@
                     margin-bottom: 20px;
                 }
                 .lines-table thead tr {
-                    background-color: #1B3A5C;
-                    color: #FFFFFF;
+                    background-color: #253758;
+                    color: #F4F1EA;
                 }
                 .lines-table thead th {
+                    font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
                     padding: 9px 10px;
                     font-weight: bold;
                     text-transform: uppercase;
-                    font-size: 7.5pt;
-                    letter-spacing: 0.5px;
+                    font-size: 7pt;
+                    letter-spacing: 1px;
                     border: none;
+                }
+                /* Trait rouge sous l'en-tête tableau */
+                .lines-table thead tr th {
+                    border-bottom: 2px solid #C81628;
                 }
                 .lines-table tbody td {
                     padding: 7px 10px;
-                    border-bottom: 1px solid #D5E8F5;
+                    border-bottom: 1px solid #D2CCC2;
                     vertical-align: top;
                 }
-                .row-even { background-color: #EBF3FB; }
+                .row-even { background-color: #F4F1EA; }
                 .row-odd  { background-color: #FFFFFF; }
 
                 /* Section & note */
                 .section-row td {
+                    font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
                     padding: 10px 10px 6px 10px !important;
                     font-weight: bold;
-                    font-size: 10pt;
-                    color: #1B3A5C;
-                    border-top: 2px solid #1B3A5C;
-                    border-bottom: 2px solid #1B3A5C !important;
-                    background-color: #F0F4F8 !important;
+                    font-size: 9.5pt;
+                    color: #253758;
+                    border-top: 2px solid #253758 !important;
+                    border-bottom: 1px solid #C81628 !important;
+                    background-color: #EBE8E0 !important;
+                    letter-spacing: 0.5px;
+                    text-transform: uppercase;
                 }
                 .note-row td {
                     padding: 4px 10px 4px 22px !important;
                     font-style: italic;
-                    color: #7F8C8D;
+                    color: #949494;
                     font-size: 8pt;
-                    background-color: #FAFBFC !important;
-                    border-bottom: 1px dashed #E0E0E0 !important;
+                    background-color: #FAF9F6 !important;
+                    border-bottom: 1px dashed #D2CCC2 !important;
                 }
 
                 /* Cellules produit */
                 .prod-name {
                     font-weight: bold;
-                    color: #1B3A5C;
+                    color: #253758;
                     line-height: 1.3;
                 }
                 .prod-desc {
                     color: #555555;
-                    font-size: 8pt;
-                    margin-top: 2px;
+                    font-size: 7.5pt;
+                    margin-top: 3px;
                     white-space: pre-line;
+                    line-height: 1.4;
                 }
                 .line-num {
-                    color: #95A5A6;
+                    color: #949494;
                     font-size: 8pt;
                     text-align: center;
                 }
                 .discount-val {
-                    color: #C0392B;
+                    color: #C81628;
                     font-weight: bold;
                 }
                 .no-discount {
-                    color: #DDDDDD;
+                    color: #D2CCC2;
                 }
 
                 /* ── Tableau totaux ── */
@@ -211,74 +261,82 @@
                 }
                 .totals-table td {
                     padding: 6px 12px;
-                    border-bottom: 1px solid #EEF0F2;
+                    border-bottom: 1px solid #EAE6DE;
                 }
                 .totals-table .subtotal-row {
-                    background-color: #F7F8FA;
+                    background-color: #F4F1EA;
                 }
                 .totals-table .tax-row {
-                    background-color: #FAFBFC;
+                    background-color: #FAF9F6;
                     color: #555555;
                 }
                 .totals-table .total-row {
-                    background-color: #1B3A5C;
-                    color: #FFFFFF;
+                    background-color: #253758;
+                    color: #F4F1EA;
                 }
                 .totals-table .total-row td {
-                    padding: 10px 12px;
+                    font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                    padding: 11px 12px;
                     font-weight: bold;
-                    font-size: 11pt;
+                    font-size: 10.5pt;
+                    border-top: 2px solid #C81628;
                     border-bottom: none;
                     text-transform: uppercase;
-                    letter-spacing: 0.5px;
+                    letter-spacing: 1px;
                 }
-                .totals-table .total-amt {
+                .total-amt {
                     font-size: 14pt;
                 }
 
-                /* ── Notes ── */
+                /* ── Encadré Notes ── */
                 .notes-box {
-                    background-color: #F7F8FA;
-                    border: 1px solid #E0E4E8;
-                    border-left: 4px solid #1B3A5C;
-                    border-radius: 0 4px 4px 0;
+                    background-color: #F4F1EA;
+                    border: 1px solid #D2CCC2;
+                    border-left: 5px solid #253758;
                     padding: 12px 15px;
                     margin-bottom: 18px;
-                    font-size: 8.5pt;
-                    color: #555555;
+                    font-size: 8pt;
+                    color: #252525;
                     line-height: 1.6;
                 }
                 .box-label {
-                    font-size: 7.5pt;
-                    color: #7F8C8D;
+                    font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                    font-size: 7pt;
+                    color: #253758;
                     text-transform: uppercase;
-                    letter-spacing: 1px;
+                    letter-spacing: 1.5px;
                     font-weight: bold;
                     margin-bottom: 6px;
                 }
 
                 /* ── Zone signature ── */
                 .sign-box {
-                    border: 1px solid #C8CDD2;
-                    height: 70px;
-                    border-radius: 4px;
-                    background-color: #FAFAFA;
+                    border: 1px solid #D2CCC2;
+                    height: 72px;
+                    background-color: #FAF9F6;
+                    border-top: 3px solid #253758;
                 }
                 .sign-label {
-                    font-size: 8pt;
-                    color: #7F8C8D;
+                    font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                    font-size: 7pt;
+                    color: #253758;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    font-weight: bold;
                     margin-bottom: 5px;
                 }
                 .sign-hint {
                     font-size: 7pt;
-                    color: #AAAAAA;
+                    color: #949494;
                     font-style: italic;
-                    margin-top: 4px;
+                    margin-top: 5px;
                 }
+
             </style>
 
-            <!-- ── Ligne de séparation ──────────────────────────────── -->
-            <hr class="hr-top"/>
+            <!-- ── Double séparateur TER ─────────────────────────────── -->
+            <div class="hr-navy"></div>
+            <div class="hr-red"></div>
 
             <!-- ── Barre de conditions commerciales ─────────────────── -->
             <div class="conditions-bar">
@@ -309,8 +367,11 @@
                             <td style="vertical-align: top;" class="cond-sep">
                                 <span class="cond-label">Incoterm</span>
                                 <span class="cond-value">
-                                    <strong><span t-field="doc.incoterm.code"/></strong>
-                                    — <span t-field="doc.incoterm.name"/>
+                                    <strong style="color: #253758;">
+                                        <span t-field="doc.incoterm.code"/>
+                                    </strong>
+                                    <span style="color: #949494;"> — </span>
+                                    <span t-field="doc.incoterm.name"/>
                                 </span>
                             </td>
                         </t>
@@ -323,13 +384,13 @@
                                     <strong><span t-field="doc.user_id"/></strong>
                                     <t t-if="doc.user_id.phone">
                                         <br/>
-                                        <span style="color: #7F8C8D; font-size: 8pt;">
+                                        <span style="color: #949494; font-size: 8pt;">
                                             <span t-field="doc.user_id.phone"/>
                                         </span>
                                     </t>
                                     <t t-if="doc.user_id.email">
                                         <br/>
-                                        <span style="color: #7F8C8D; font-size: 8pt;">
+                                        <span style="color: #949494; font-size: 8pt;">
                                             <span t-field="doc.user_id.email"/>
                                         </span>
                                     </t>
@@ -337,7 +398,7 @@
                             </td>
                         </t>
 
-                        <!-- Adresse de livraison (si différente de facturation) -->
+                        <!-- Adresse de livraison si différente -->
                         <t t-if="doc.partner_shipping_id != doc.partner_invoice_id">
                             <td style="vertical-align: top;" class="cond-sep">
                                 <span class="cond-label">Livraison</span>
@@ -367,10 +428,10 @@
                 <thead>
                     <tr>
                         <th style="text-align: center; width: 4%;">#</th>
-                        <th style="text-align: left;">Description</th>
+                        <th style="text-align: left;">Désignation</th>
                         <th style="text-align: center; width: 8%;">Qté</th>
                         <th style="text-align: center; width: 6%;">Unité</th>
-                        <th style="text-align: right; width: 12%;">Prix unitaire</th>
+                        <th style="text-align: right; width: 12%;">Prix unit. HT</th>
                         <th t-if="display_discount"
                             style="text-align: right; width: 7%;">Remise</th>
                         <th style="text-align: right; width: 12%;">Montant HT</th>
@@ -390,7 +451,7 @@
                                     <t t-out="lnum"/>
                                 </td>
 
-                                <!-- Description : 1re ligne en gras, suite en normal -->
+                                <!-- Désignation : 1re ligne en gras / suite en normal -->
                                 <td>
                                     <t t-set="desc_lines"
                                        t-value="(line.name or '').split('\n')"/>
@@ -411,7 +472,7 @@
                                 </td>
 
                                 <!-- Unité -->
-                                <td style="text-align: center; color: #7F8C8D;
+                                <td style="text-align: center; color: #949494;
                                            font-size: 8pt; white-space: nowrap;">
                                     <span t-field="line.product_uom"/>
                                 </td>
@@ -472,18 +533,22 @@
             <!-- ── Totaux ────────────────────────────────────────────── -->
             <table width="100%" style="border-collapse: collapse; margin-bottom: 22px;">
                 <tr>
-                    <!-- Colonne gauche vide (espace pour éventuelles mentions) -->
-                    <td width="52%" style="vertical-align: top; padding-right: 20px;">
-                        <!-- Acompte ou mention légale éventuelle -->
+                    <!-- Zone gauche : mention validité ou texte libre -->
+                    <td width="52%" style="vertical-align: bottom; padding-right: 20px;
+                                          padding-bottom: 4px;">
                         <t t-if="doc.state not in ('sale', 'done', 'cancel')">
-                            <div style="font-size: 8pt; color: #7F8C8D; font-style: italic;
-                                        margin-top: 4px; line-height: 1.5;">
+                            <div style="font-size: 7.5pt; color: #949494;
+                                        font-style: italic; line-height: 1.6;
+                                        border-left: 3px solid #C81628;
+                                        padding-left: 8px;">
                                 Ce devis est valable jusqu'au
                                 <t t-if="doc.validity_date">
-                                    <strong style="color: #1B3A5C;">
+                                    <strong style="color: #253758;">
                                         <span t-field="doc.validity_date"/>
                                     </strong>.
                                 </t>
+                                <br/>
+                                Tout bon de commande vaut acceptation des présentes conditions.
                             </div>
                         </t>
                     </td>
@@ -493,40 +558,47 @@
                         <table class="totals-table">
                             <!-- Sous-total HT -->
                             <tr class="subtotal-row">
-                                <td>Sous-total HT</td>
-                                <td style="text-align: right; font-weight: bold;">
+                                <td class="f-futura"
+                                    style="text-transform: uppercase; font-size: 8pt;
+                                           letter-spacing: 0.5px; color: #555555;">
+                                    Sous-total HT
+                                </td>
+                                <td style="text-align: right; font-weight: bold;
+                                           color: #252525;">
                                     <span t-field="doc.amount_untaxed"
                                           t-options='{"widget": "monetary",
                                                       "display_currency": doc.currency_id}'/>
                                 </td>
                             </tr>
 
-                            <!-- Détail des taxes (par groupe) -->
+                            <!-- Détail des taxes par groupe -->
                             <t t-if="doc.amount_tax">
                                 <t t-foreach="(doc.tax_totals or {}).get('groups_by_subtotal', {}).values()"
                                    t-as="tax_groups">
                                     <t t-foreach="tax_groups" t-as="tg">
                                         <tr class="tax-row">
-                                            <td>
+                                            <td style="color: #555555;">
                                                 <span t-out="tg.get('tax_group_name', 'TVA')"/>
                                                 <t t-if="tg.get('tax_group_base_amount')">
-                                                    <span style="font-size: 7.5pt; color: #AAAAAA;">
+                                                    <span style="font-size: 7pt; color: #AAAAAA;">
                                                         (base :
-                                                        <span t-out="tg.get('formatted_tax_group_base_amount',
-                                                                           '%.2f' % tg.get('tax_group_base_amount', 0))"/>)
+                                                        <span t-out="tg.get(
+                                                            'formatted_tax_group_base_amount',
+                                                            '%.2f' % tg.get('tax_group_base_amount', 0))"/>)
                                                     </span>
                                                 </t>
                                             </td>
-                                            <td style="text-align: right;">
-                                                <span t-out="tg.get('formatted_tax_group_amount',
-                                                                   '%.2f' % tg.get('tax_group_amount', 0))"/>
+                                            <td style="text-align: right; color: #252525;">
+                                                <span t-out="tg.get(
+                                                    'formatted_tax_group_amount',
+                                                    '%.2f' % tg.get('tax_group_amount', 0))"/>
                                             </td>
                                         </tr>
                                     </t>
                                 </t>
                             </t>
 
-                            <!-- Total TTC -->
+                            <!-- TOTAL TTC -->
                             <tr class="total-row">
                                 <td>Total TTC</td>
                                 <td style="text-align: right;">
@@ -549,10 +621,14 @@
                 </div>
             </t>
 
-            <!-- ── Zone de signature (devis en attente uniquement) ─── -->
+            <!-- ── Zone de signature (devis en attente) ──────────── -->
             <t t-if="doc.state not in ('sale', 'done', 'cancel')">
                 <div style="margin-top: 28px; page-break-inside: avoid;">
-                    <div class="box-label" style="margin-bottom: 10px;">Bon pour accord</div>
+                    <div class="box-label" style="margin-bottom: 10px;">
+                        Bon pour accord — <span style="color: #C81628; font-weight: bold;">
+                            <span t-field="doc.name"/>
+                        </span>
+                    </div>
                     <table width="100%" style="border-collapse: collapse;">
                         <tr>
                             <!-- Signature client -->
@@ -580,11 +656,11 @@
 </template>
 
 <!-- ==============================================================
-     ACTION DE RAPPORT — disponible dans l'impression des devis
+     ACTION DE RAPPORT
      ============================================================== -->
 <report
     id="action_report_saleorder_a4"
-    string="Devis / BC — Mise en page A4 Premium"
+    string="Devis / BC — Mise en page A4 TER"
     model="sale.order"
     report_type="qweb-pdf"
     name="sale_quotation_layout.report_saleorder_document_a4"
