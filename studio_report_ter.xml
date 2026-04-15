@@ -8,32 +8,14 @@
            expr="/t[@t-name='sale.report_saleorder_document_copy_10']//t[@t-call='web.external_layout']/t[4]"
            meta-t-if="doc.partner_shipping_id == doc.partner_invoice_id and doc.partner_invoice_id != doc.partner_id or doc.partner_shipping_id != doc.partner_invoice_id">
       <t t-set="information_block">
-        <div style="font-family: Verdana, Geneva, sans-serif; font-size: 8.5pt; line-height: 1.5; min-width: 170px;">
-          <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 7pt; color: #64748B; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; margin-bottom: 3px;">
+        <div style="font-family: Verdana, Geneva, sans-serif; font-size: 8.5pt; min-width: 170px;">
+          <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 7pt; color: #64748B; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; margin-bottom: 4px;">
             <t t-if="doc.state in ('sale', 'done')">Bon de Commande</t>
             <t t-else="">Devis</t>
           </div>
-          <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 16pt; font-weight: bold; color: #253758; letter-spacing: 0.5px; margin-bottom: 10px;">
+          <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 17pt; font-weight: bold; color: #253758; letter-spacing: 0.5px;">
             <span t-field="doc.name"/>
           </div>
-          <table style="border-collapse: collapse; width: 100%; font-size: 8pt;">
-            <tr style="border-bottom: 1px solid #E2E8F0;">
-              <td style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 6.5pt; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 12px 3px 0; white-space: nowrap;">Date</td>
-              <td style="color: #1E293B; padding: 3px 0; white-space: nowrap;"><span t-field="doc.date_order" t-options='{"widget": "date"}'/></td>
-            </tr>
-            <t t-if="doc.validity_date">
-              <tr style="border-bottom: 1px solid #E2E8F0;">
-                <td style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 6.5pt; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 12px 3px 0; white-space: nowrap;">Validite</td>
-                <td style="color: #1E293B; padding: 3px 0; white-space: nowrap;"><span t-field="doc.validity_date"/></td>
-              </tr>
-            </t>
-            <t t-if="doc.user_id">
-              <tr>
-                <td style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 6.5pt; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 12px 3px 0; white-space: nowrap;">Contact</td>
-                <td style="color: #253758; font-weight: bold; padding: 3px 0;"><span t-field="doc.user_id"/></td>
-              </tr>
-            </t>
-          </table>
         </div>
       </t>
     </xpath>
@@ -45,15 +27,25 @@
            meta-class="oe_structure">
       <style type="text/css">
         .page { font-family: Verdana, Geneva, sans-serif !important; font-size: 8.5pt; color: #1E293B; }
+        /* Masquer le cadre date/vendeur standard du template de base */
+        .page #informations,
+        .page .o_dateinfo,
+        .page div.row.mt32.mb32 { display: none !important; }
+        /* En-tete tableau produits */
         .page table thead th, .page table thead td { background-color: #253758 !important; color: #F0F4F8 !important; font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif !important; text-transform: uppercase !important; font-size: 7pt !important; letter-spacing: 1px !important; padding: 9px 10px !important; border: none !important; }
+        /* Lignes alternees */
         .page table tbody tr:nth-child(even) { background-color: #F0F4F8; }
         .page table tbody tr:nth-child(odd) { background-color: #FFFFFF; }
         .page table tbody td { border-bottom: 1px solid #E2E8F0 !important; padding: 7px 10px !important; vertical-align: top; }
+        /* Totaux */
         .page .o_subtotal td, .page tr.o_subtotal td { background-color: #F0F4F8 !important; font-weight: bold; color: #1E293B !important; }
         .page .o_total td, .page tr.o_total td { background-color: #253758 !important; color: #F0F4F8 !important; font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif !important; font-weight: bold !important; font-size: 11pt !important; text-transform: uppercase; letter-spacing: 1px; border: none !important; padding: 10px 12px !important; }
+        /* Labels du bloc unifie */
         .ter-lbl { font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 6.5pt; color: #64748B; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 3px; }
         .ter-val { font-size: 8.5pt; color: #1E293B; display: block; }
-        .ter-sep { border-left: 1px solid #CBD5E1; padding-left: 16px; margin-left: 4px; }
+        .ter-col { vertical-align: top; padding: 0 18px 0 0; }
+        .ter-col-sep { vertical-align: top; padding: 0 18px; border-left: 1px solid #CBD5E1; }
+        .ter-row-sep { border-top: 1px solid #E2E8F0; margin: 10px 0; }
       </style>
       <div style="border-top: 2px solid #253758; margin: 6px 0 18px 0;"></div>
     </xpath>
@@ -62,29 +54,70 @@
   <data>
     <xpath position="replace"
            expr="/t[@t-name='sale.report_saleorder_document_copy_10']//t[@t-call='web.external_layout']/div/div[3]">
-      <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-top: 2px solid #253758; padding: 12px 16px; margin-bottom: 6px; font-family: Verdana, Geneva, sans-serif;">
+      <div style="background-color: #F8F9FA; border: 1px solid #E2E8F0; border-top: 2px solid #253758; border-radius: 4px; padding: 14px 18px; margin-bottom: 20px; font-family: Verdana, Geneva, sans-serif;">
+
+        <!-- LIGNE 1 : Date | Validite | Vendeur -->
+        <table width="100%" style="border-collapse: collapse;">
+          <tr>
+            <td class="ter-col">
+              <span class="ter-lbl">Date du devis</span>
+              <span class="ter-val"><span t-field="doc.date_order" t-options='{"widget": "date"}'/></span>
+            </td>
+            <t t-if="doc.validity_date">
+              <td class="ter-col-sep">
+                <span class="ter-lbl">Validite</span>
+                <span class="ter-val"><span t-field="doc.validity_date"/></span>
+              </td>
+            </t>
+            <t t-if="doc.user_id">
+              <td class="ter-col-sep">
+                <span class="ter-lbl">Vendeur</span>
+                <span class="ter-val" style="font-weight: bold; color: #253758;"><span t-field="doc.user_id"/></span>
+              </td>
+            </t>
+          </tr>
+        </table>
+
+        <!-- SEPARATEUR -->
+        <div class="ter-row-sep"></div>
+
+        <!-- LIGNE 2 : Votre reference | Delai | Incoterm -->
         <table width="100%" style="border-collapse: collapse;">
           <tr>
             <t t-if="doc.client_order_ref">
-              <td style="vertical-align: top; padding-right: 16px;">
+              <td class="ter-col">
                 <span class="ter-lbl">Votre reference</span>
                 <span class="ter-val"><span t-field="doc.client_order_ref"/></span>
               </td>
             </t>
             <t t-if="doc.x_studio_delai_de_livraison">
-              <td class="ter-sep" style="vertical-align: top; padding-right: 16px;">
+              <td t-att-class="'ter-col-sep' if doc.client_order_ref else 'ter-col'">
                 <span class="ter-lbl">Delai de livraison</span>
                 <span class="ter-val"><span t-field="doc.x_studio_delai_de_livraison"/></span>
               </td>
             </t>
             <t t-if="doc.incoterm">
-              <td class="ter-sep" style="vertical-align: top;">
+              <td t-att-class="'ter-col-sep' if (doc.client_order_ref or doc.x_studio_delai_de_livraison) else 'ter-col'">
                 <span class="ter-lbl">Incoterm</span>
                 <span class="ter-val"><strong style="color: #253758;"><span t-field="doc.incoterm.code"/></strong><span style="color: #94A3B8;"> - </span><span t-field="doc.incoterm.name"/></span>
               </td>
             </t>
           </tr>
         </table>
+
+        <!-- SEPARATEUR + CONDITIONS DE PAIEMENT -->
+        <t t-if="doc.payment_term_id">
+          <div class="ter-row-sep"></div>
+          <table width="100%" style="border-collapse: collapse;">
+            <tr>
+              <td class="ter-col">
+                <span class="ter-lbl">Conditions de paiement</span>
+                <span class="ter-val"><span t-field="doc.payment_term_id"/></span>
+              </td>
+            </tr>
+          </table>
+        </t>
+
       </div>
     </xpath>
   </data>
@@ -100,13 +133,13 @@
             <tr>
               <td width="46%" style="vertical-align: top;">
                 <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 6.5pt; color: #64748B; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 5px;">Cachet et signature du client</div>
-                <div style="border: 1px solid #E2E8F0; border-top: 2px solid #253758; height: 72px; background-color: #F8FAFC;"></div>
+                <div style="border: 1px solid #E2E8F0; border-top: 2px solid #253758; height: 72px; background-color: #F8F9FA;"></div>
                 <div style="font-size: 7pt; color: #94A3B8; font-style: italic; margin-top: 5px;">Preceder la signature de la mention Lu et approuve</div>
               </td>
               <td width="8%"></td>
               <td width="46%" style="vertical-align: top;">
                 <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 6.5pt; color: #64748B; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 5px;">Date d acceptation</div>
-                <div style="border: 1px solid #E2E8F0; border-top: 2px solid #253758; height: 72px; background-color: #F8FAFC;"></div>
+                <div style="border: 1px solid #E2E8F0; border-top: 2px solid #253758; height: 72px; background-color: #F8F9FA;"></div>
                 <div style="font-size: 7pt; color: #94A3B8; font-style: italic; margin-top: 5px;">Date et lieu de signature</div>
               </td>
             </tr>
