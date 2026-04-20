@@ -337,3 +337,445 @@ a:hover { text-decoration: underline; }
   .navbar { padding: 0 14px; }
   .nav-user { display: none; }
 }
+
+/* =========================================================
+   NAVBAR LINKS
+   ========================================================= */
+.navbar-links {
+  display: flex;
+  gap: 4px;
+  margin: 0 24px;
+}
+
+.nav-link {
+  color: rgba(255,255,255,.8);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background .15s, color .15s;
+}
+.nav-link:hover,
+.nav-link.active {
+  background: rgba(255,255,255,.18);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* =========================================================
+   STATS ROW (dashboard)
+   ========================================================= */
+.stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 18px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.stat-card-warn  .stat-value { color: var(--color-warn); }
+.stat-card-ok    .stat-value { color: var(--color-success); }
+
+/* =========================================================
+   PAGE HEADER WITH ACTIONS
+   ========================================================= */
+.page-header-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* =========================================================
+   BUTTON VARIANTS
+   ========================================================= */
+.btn-secondary {
+  background: #eef2f7;
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border);
+}
+.btn-secondary:hover { background: #e2e8f0; text-decoration: none; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-muted);
+  border: 1.5px solid var(--color-border);
+}
+.btn-ghost:hover { background: #eef2f7; color: var(--color-text); text-decoration: none; }
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+/* =========================================================
+   FILTERS BAR
+   ========================================================= */
+.filters-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-search {
+  flex: 1;
+  min-width: 180px;
+  max-width: 320px;
+}
+
+.filter-select { width: auto; min-width: 150px; }
+
+.form-control-sm {
+  padding: 7px 12px;
+  font-size: 13px;
+}
+
+/* =========================================================
+   DATA TABLE
+   ========================================================= */
+.table-container {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.data-table th {
+  background: #f5f7fa;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--color-muted);
+  border-bottom: 1.5px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #eef0f3;
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover td      { background: #f9fafb; }
+
+.table-empty, .table-hint {
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 14px;
+  padding: 28px 16px;
+}
+
+.total-row td {
+  background: #f5f7fa;
+  border-top: 1.5px solid var(--color-border);
+  border-bottom: none;
+}
+
+/* =========================================================
+   TABLE ACTIONS
+   ========================================================= */
+.actions-cell { white-space: nowrap; }
+
+.btn-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 3px 5px;
+  border-radius: 4px;
+  opacity: .7;
+  transition: opacity .15s, background .15s;
+  text-decoration: none;
+  color: inherit;
+}
+.btn-action:hover { opacity: 1; background: #eef2f7; text-decoration: none; }
+
+/* =========================================================
+   STATUT BADGES
+   ========================================================= */
+.badge-statut {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.badge-brouillon { background: #eef2f7; color: var(--color-muted); }
+.badge-valide    { background: #edfaf3; color: var(--color-success); border: 1px solid #a9dfc0; }
+.badge-archive   { background: #f0f0f0; color: #888; }
+
+/* =========================================================
+   PAGINATION
+   ========================================================= */
+.pagination {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  transition: background .15s, border-color .15s;
+  text-decoration: none;
+}
+.page-link:hover   { background: #eef2f7; text-decoration: none; }
+.page-active       { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.page-active:hover { background: var(--color-primary-d); }
+
+/* =========================================================
+   FORM SECTIONS
+   ========================================================= */
+.form-section {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--color-muted);
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.section-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+.section-header-actions .section-title {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.form-grid {
+  display: grid;
+  gap: 16px;
+}
+.form-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.form-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+.form-group-span2 { grid-column: span 2; }
+
+.required { color: var(--color-error); }
+
+.inline-result {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--color-muted);
+}
+.inline-result strong { color: var(--color-text); font-size: 15px; }
+
+/* =========================================================
+   OPS TABLE (dans le formulaire)
+   ========================================================= */
+.ops-table td { padding: 7px 10px; }
+
+.btn-del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-error);
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: .7;
+  transition: opacity .15s, background .15s;
+}
+.btn-del:hover { opacity: 1; background: #fdf0ef; }
+
+/* =========================================================
+   SUMMARY BAR
+   ========================================================= */
+.summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+}
+
+.summary-item-accent .summary-value { color: var(--color-primary); }
+.summary-item-highlight .summary-value {
+  color: var(--color-success);
+  font-size: 22px;
+}
+
+.summary-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--color-muted);
+  margin-bottom: 4px;
+}
+
+.summary-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-op {
+  color: var(--color-muted);
+  font-size: 18px;
+  font-weight: 300;
+}
+
+/* =========================================================
+   FORM ACTIONS BAR
+   ========================================================= */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+/* =========================================================
+   DETAIL VIEW
+   ========================================================= */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  list-style: none;
+}
+
+.detail-field dt {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--color-muted);
+  margin-bottom: 4px;
+}
+
+.detail-field dd {
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.detail-field-full { grid-column: span 3; }
+
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+.mono    { font-family: 'Consolas', 'Courier New', monospace; }
+.fw-bold { font-weight: 700; }
+.text-right  { text-align: right; }
+.text-center { text-align: center; }
+
+/* =========================================================
+   RESPONSIVE – chiffrage forms
+   ========================================================= */
+@media (max-width: 900px) {
+  .form-grid-3, .form-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .form-group-span2            { grid-column: span 1; }
+  .detail-grid                 { grid-template-columns: repeat(2, 1fr); }
+  .detail-field-full           { grid-column: span 2; }
+  .summary-bar                 { gap: 8px; }
+}
+
+@media (max-width: 600px) {
+  .form-grid-3, .form-grid-4  { grid-template-columns: 1fr; }
+  .detail-grid                 { grid-template-columns: 1fr; }
+  .detail-field-full           { grid-column: span 1; }
+  .navbar-links                { display: none; }
+  .stats-row .stat-card        { flex: 1; min-width: 90px; }
+}
+
+/* =========================================================
+   PRINT
+   ========================================================= */
+@media print {
+  .navbar, .filters-bar, .form-actions, .btn-group,
+  .btn-action, .btn-del, .btn, .pagination { display: none !important; }
+  .main-content { padding: 0; }
+  .form-section, .summary-bar { border: 1px solid #ccc; box-shadow: none; }
+  body { background: #fff; }
+}

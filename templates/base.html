@@ -14,6 +14,12 @@
       <span class="brand-icon">⚙</span>
       <span class="brand-name">TER <span class="brand-sub">Chiffrage</span></span>
     </div>
+    <nav class="navbar-links">
+      <a href="{{ url_for('dashboard') }}"
+         class="nav-link{% if request.endpoint == 'dashboard' %} active{% endif %}">Accueil</a>
+      <a href="{{ url_for('chiffrages_liste') }}"
+         class="nav-link{% if request.endpoint and request.endpoint.startswith('chiffrage') %} active{% endif %}">Chiffrages</a>
+    </nav>
     <div class="navbar-right">
       <span class="nav-user">{{ username }}</span>
       <a href="{{ url_for('logout') }}" class="btn btn-outline-sm">Déconnexion</a>

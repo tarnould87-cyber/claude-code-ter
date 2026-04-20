@@ -32,7 +32,10 @@ def create_user(username: str, password: str) -> None:
 
 
 if __name__ == '__main__':
+    from app import seed_libraries
     init_db()
+    with get_db() as conn:
+        seed_libraries(conn)
     for uname, pwd in USERS:
         create_user(uname, pwd)
     print("\nTerminé. Modifiez les mots de passe depuis l'interface ou relancez ce script.")

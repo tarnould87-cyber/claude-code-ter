@@ -7,43 +7,52 @@
   <p class="page-subtitle">Bienvenue, <strong>{{ username }}</strong></p>
 </div>
 
+<div class="stats-row">
+  <div class="stat-card">
+    <span class="stat-value">{{ stats.total }}</span>
+    <span class="stat-label">Chiffrages total</span>
+  </div>
+  <div class="stat-card stat-card-warn">
+    <span class="stat-value">{{ stats.brouillon }}</span>
+    <span class="stat-label">Brouillons</span>
+  </div>
+  <div class="stat-card stat-card-ok">
+    <span class="stat-value">{{ stats.valide }}</span>
+    <span class="stat-label">Validés</span>
+  </div>
+</div>
+
 <div class="dashboard-grid">
-
-  <a href="#" class="dashboard-card card-disabled">
-    <div class="card-icon">📦</div>
+  <a href="{{ url_for('chiffrage_nouveau') }}" class="dashboard-card">
+    <div class="card-icon">➕</div>
     <div class="card-body">
-      <h3>Catalogue pièces</h3>
-      <p>Gérer les références, matières et dimensions</p>
+      <h3>Nouveau chiffrage</h3>
+      <p>Saisir une nouvelle étude de prix</p>
     </div>
-    <span class="badge badge-soon">À venir</span>
   </a>
 
-  <a href="#" class="dashboard-card card-disabled">
-    <div class="card-icon">💰</div>
-    <div class="card-body">
-      <h3>Tarifs</h3>
-      <p>Coûts matières, temps usinages, sous-traitance</p>
-    </div>
-    <span class="badge badge-soon">À venir</span>
-  </a>
-
-  <a href="#" class="dashboard-card card-disabled">
+  <a href="{{ url_for('chiffrages_liste') }}" class="dashboard-card">
     <div class="card-icon">📋</div>
     <div class="card-body">
-      <h3>Devis</h3>
-      <p>Créer et gérer les chiffrages clients</p>
+      <h3>Liste des chiffrages</h3>
+      <p>Consulter, modifier, dupliquer</p>
     </div>
-    <span class="badge badge-soon">À venir</span>
   </a>
 
-  <a href="#" class="dashboard-card card-disabled">
-    <div class="card-icon">📊</div>
+  <a href="{{ url_for('chiffrages_liste') }}?statut=brouillon" class="dashboard-card">
+    <div class="card-icon">💾</div>
     <div class="card-body">
-      <h3>Historique</h3>
-      <p>Consulter les devis passés</p>
+      <h3>Brouillons</h3>
+      <p>{{ stats.brouillon }} chiffrage{{ 's' if stats.brouillon != 1 }} en cours</p>
     </div>
-    <span class="badge badge-soon">À venir</span>
   </a>
 
+  <a href="{{ url_for('chiffrages_liste') }}?statut=valide" class="dashboard-card">
+    <div class="card-icon">✅</div>
+    <div class="card-body">
+      <h3>Validés</h3>
+      <p>{{ stats.valide }} chiffrage{{ 's' if stats.valide != 1 }} finalisé{{ 's' if stats.valide != 1 }}</p>
+    </div>
+  </a>
 </div>
 {% endblock %}
