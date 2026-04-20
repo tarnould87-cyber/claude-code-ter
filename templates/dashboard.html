@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}TER – Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>Tableau de bord</h2>
+  <p class="page-subtitle">Bienvenue, <strong>{{ username }}</strong></p>
+</div>
+
+<div class="dashboard-grid">
+
+  <a href="#" class="dashboard-card card-disabled">
+    <div class="card-icon">📦</div>
+    <div class="card-body">
+      <h3>Catalogue pièces</h3>
+      <p>Gérer les références, matières et dimensions</p>
+    </div>
+    <span class="badge badge-soon">À venir</span>
+  </a>
+
+  <a href="#" class="dashboard-card card-disabled">
+    <div class="card-icon">💰</div>
+    <div class="card-body">
+      <h3>Tarifs</h3>
+      <p>Coûts matières, temps usinages, sous-traitance</p>
+    </div>
+    <span class="badge badge-soon">À venir</span>
+  </a>
+
+  <a href="#" class="dashboard-card card-disabled">
+    <div class="card-icon">📋</div>
+    <div class="card-body">
+      <h3>Devis</h3>
+      <p>Créer et gérer les chiffrages clients</p>
+    </div>
+    <span class="badge badge-soon">À venir</span>
+  </a>
+
+  <a href="#" class="dashboard-card card-disabled">
+    <div class="card-icon">📊</div>
+    <div class="card-body">
+      <h3>Historique</h3>
+      <p>Consulter les devis passés</p>
+    </div>
+    <span class="badge badge-soon">À venir</span>
+  </a>
+
+</div>
+{% endblock %}
