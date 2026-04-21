@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}TER – Chiffrages{% endblock %}
+
+{% block content %}
+<div class="page-header page-header-actions">
+  <div>
+    <h2>Chiffrages</h2>
+    <p class="page-subtitle">{{ total }} chiffrage{{ 's' if total != 1 }}</p>
+  </div>
+  <a href="{{ url_for('chiffrage_nouveau') }}" class="btn btn-primary">+ Nouveau chiffrage</a>
+</div>
+
+<form method="get" class="filters-bar">
+  <input type="text" name="q" value="{{ q }}" placeholder="Rechercher réf., client, affaire…"
+         class="form-control form-control-sm filter-search">
+  <select name="statut" class="form-control form-control-sm filter-select" onchange="this.form.submit()">
+    <option value="">Tous les statuts</option>
+    <option value="brouillon" {% if statut_filtre == 'brouillon' %}selected{% endif %}>Brouillon</option>
+    <option value="valide"    {% if statut_filtre == 'valide'    %}selected{% endif %}>Validé</option>
+    <option value="archive"   {% if statut_filtre == 'archive'   %}selected{% endif %}>Archivé</option>
+  </select>
+  <button type="submit" class="btn btn-secondary btn-sm">Filtrer</button>
+  {% if q or statut_filtre %}
+    <a href="{{ url_for('chiffrages_liste') }}" class="btn btn-ghost btn-sm">✕ Réinitialiser</a>
+  {% endif %}
+</form>
+
+<div class="table-container">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Référence pièce</th>
+        <th>Client</th>
+        <th>Code affaire</th>
+        <th>Date</th>
+        <th>Opérateur</th>
+        <th>Statut</th>
+        <th class="text-right">Coût de revient</th>
+        <th class="text-right">Prix de vente</th>
+        <th class="text-center">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in chiffrages %}
+      <tr>
+        <td><strong>{{ c['ref_piece'] }}</strong></td>
+        <td>{{ c['ref_client'] or '—' }}</td>
+        <td class="mono">{{ c['code_affaire'] or '—' }}</td>
+        <td>{{ c['created_at'][:10] }}</td>
+        <td>{{ c['operateur'] }}</td>
+        <td><span class="badge badge-statut badge-{{ c['statut'] }}">{{ c['statut'] }}</span></td>
+        <td class="text-right mono">{{ "%.2f"|format(c['cout_revient']) }} €</td>
+        <td class="text-right mono fw-bold">{{ "%.2f"|format(c['prix_vente']) }} €</td>
+        <td class="text-center actions-cell">
+          <a href="{{ url_for('chiffrage_detail',  chiffrage_id=c['id']) }}" class="btn-action" title="Voir">👁</a>
+          {% if c['statut'] != 'archive' %}
+          <a href="{{ url_for('chiffrage_modifier', chiffrage_id=c['id']) }}" class="btn-action" title="Modifier">✏️</a>
+          {% endif %}
+          <form method="post" action="{{ url_for('chiffrage_dupliquer', chiffrage_id=c['id']) }}" style="display:inline">
+            <button type="submit" class="btn-action" title="Dupliquer">📋</button>
+          </form>
+          {% if c['statut'] != 'archive' %}
+          <form method="post" action="{{ url_for('chiffrage_archiver', chiffrage_id=c['id']) }}" style="display:inline"
+                onsubmit="return confirm('Archiver « {{ c['ref_piece'] }} » ?')">
+            <button type="submit" class="btn-action" title="Archiver">📦</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="9" class="table-empty">
+          {% if q or statut_filtre %}
+            Aucun résultat pour cette recherche.
+          {% else %}
+            Aucun chiffrage pour le moment.
+            <a href="{{ url_for('chiffrage_nouveau') }}">Créer le premier</a>.
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if pages > 1 %}
+<div class="pagination">
+  {% if page > 1 %}
+    <a href="?page={{ page - 1 }}&q={{ q }}&statut={{ statut_filtre }}" class="page-link">‹ Précédent</a>
+  {% endif %}
+  {% for p in range(1, pages + 1) %}
+    <a href="?page={{ p }}&q={{ q }}&statut={{ statut_filtre }}"
+       class="page-link{% if p == page %} page-active{% endif %}">{{ p }}</a>
+  {% endfor %}
+  {% if page < pages %}
+    <a href="?page={{ page + 1 }}&q={{ q }}&statut={{ statut_filtre }}" class="page-link">Suivant ›</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

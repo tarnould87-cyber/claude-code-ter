@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}TER – {{ chiffrage['ref_piece'] }}{% endblock %}
+
+{% block content %}
+<div class="page-header page-header-actions">
+  <div>
+    <h2>{{ chiffrage['ref_piece'] }}</h2>
+    <p class="page-subtitle">
+      Créé le {{ chiffrage['created_at'][:10] }} par {{ chiffrage['operateur'] }}
+      &nbsp;·&nbsp;
+      <span class="badge badge-statut badge-{{ chiffrage['statut'] }}">{{ chiffrage['statut'] }}</span>
+    </p>
+  </div>
+  <div class="btn-group">
+    <a href="{{ url_for('chiffrages_liste') }}" class="btn btn-ghost">← Liste</a>
+    {% if chiffrage['statut'] != 'archive' %}
+    <a href="{{ url_for('chiffrage_modifier', chiffrage_id=chiffrage['id']) }}" class="btn btn-secondary">✏️ Modifier</a>
+    {% endif %}
+    <form method="post" action="{{ url_for('chiffrage_dupliquer', chiffrage_id=chiffrage['id']) }}" style="display:inline">
+      <button type="submit" class="btn btn-secondary">📋 Dupliquer</button>
+    </form>
+    <button onclick="window.print()" class="btn btn-ghost">🖨 Imprimer</button>
+  </div>
+</div>
+
+{# ── Entête ─────────────────────────────────────────────────────────── #}
+<section class="form-section">
+  <h3 class="section-title">Entête</h3>
+  <dl class="detail-grid">
+    <div class="detail-field">
+      <dt>Référence pièce</dt>
+      <dd><strong>{{ chiffrage['ref_piece'] }}</strong></dd>
+    </div>
+    <div class="detail-field">
+      <dt>Référence client</dt>
+      <dd>{{ chiffrage['ref_client'] or '—' }}</dd>
+    </div>
+    <div class="detail-field">
+      <dt>Code affaire</dt>
+      <dd class="mono">{{ chiffrage['code_affaire'] or '—' }}</dd>
+    </div>
+    <div class="detail-field">
+      <dt>Quantité</dt>
+      <dd>{{ chiffrage['quantite'] }} pce</dd>
+    </div>
+    <div class="detail-field">
+      <dt>Opérateur</dt>
+      <dd>{{ chiffrage['operateur'] }}</dd>
+    </div>
+    <div class="detail-field">
+      <dt>Mis à jour le</dt>
+      <dd>{{ chiffrage['updated_at'][:16].replace('T', ' ') }}</dd>
+    </div>
+    {% if chiffrage['notes'] %}
+    <div class="detail-field detail-field-full">
+      <dt>Notes</dt>
+      <dd>{{ chiffrage['notes'] }}</dd>
+    </div>
+    {% endif %}
+  </dl>
+</section>
+
+{# ── Matière ─────────────────────────────────────────────────────────── #}
+<section class="form-section">
+  <h3 class="section-title">Matière</h3>
+  {% if chiffrage['matiere_designation'] %}
+  <dl class="detail-grid">
+    <div class="detail-field">
+      <dt>Désignation</dt>
+      <dd>{{ chiffrage['matiere_designation'] }}</dd>
+    </div>
+    <div class="detail-field">
+      <dt>Masse brute / pièce</dt>
+      <dd>{{ "%.3f"|format(chiffrage['matiere_masse_brute']) }} kg</dd>
+    </div>
+    <div class="detail-field">
+      <dt>Prix / kg</dt>
+      <dd>{{ "%.2f"|format(chiffrage['matiere_prix_kg']) }} €</dd>
+    </div>
+    <div class="detail-field">
+      <dt>Coût matière total</dt>
+      <dd><strong>{{ "%.2f"|format(chiffrage['cout_matiere']) }} €</strong></dd>
+    </div>
+  </dl>
+  {% else %}
+  <p class="table-hint">Aucune matière renseignée.</p>
+  {% endif %}
+</section>
+
+{# ── Opérations ───────────────────────────────────────────────────────── #}
+<section class="form-section">
+  <h3 class="section-title">Opérations</h3>
+  {% if lignes %}
+  <div class="table-container">
+    <table class="data-table ops-table">
+      <thead>
+        <tr>
+          <th>Poste</th>
+          <th>Désignation</th>
+          <th class="text-right">Temps (h)</th>
+          <th class="text-right">Taux (€/h)</th>
+          <th class="text-right">Coût / pièce</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set total_h = namespace(v=0) %}
+        {% for l in lignes %}
+        {% set total_h.v = total_h.v + l['temps_h'] %}
+        <tr>
+          <td class="mono fw-bold">{{ l['poste_code'] }}</td>
+          <td>{{ l['poste_designation'] }}</td>
+          <td class="text-right mono">{{ "%.2f"|format(l['temps_h']) }}</td>
+          <td class="text-right mono">{{ "%.2f"|format(l['taux_horaire']) }}</td>
+          <td class="text-right mono">{{ "%.2f"|format(l['cout_ligne']) }} €</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td colspan="2"><strong>Total opérations / pièce</strong></td>
+          <td class="text-right mono"><strong>{{ "%.2f"|format(total_h.v) }} h</strong></td>
+          <td></td>
+          <td class="text-right mono">
+            <strong>{{ "%.2f"|format(chiffrage['cout_mo'] / chiffrage['quantite'] if chiffrage['quantite'] else 0) }} €</strong>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  {% else %}
+  <p class="table-hint">Aucune opération enregistrée.</p>
+  {% endif %}
+</section>
+
+{# ── Résumé financier ─────────────────────────────────────────────────── #}
+<div class="summary-bar">
+  <div class="summary-item">
+    <span class="summary-label">Coût matière</span>
+    <span class="summary-value">{{ "%.2f"|format(chiffrage['cout_matiere']) }} €</span>
+  </div>
+  <span class="summary-op">+</span>
+  <div class="summary-item">
+    <span class="summary-label">Coût MO</span>
+    <span class="summary-value">{{ "%.2f"|format(chiffrage['cout_mo']) }} €</span>
+  </div>
+  <span class="summary-op">=</span>
+  <div class="summary-item summary-item-accent">
+    <span class="summary-label">Coût de revient</span>
+    <span class="summary-value">{{ "%.2f"|format(chiffrage['cout_revient']) }} €</span>
+  </div>
+  <span class="summary-op">× 1,35</span>
+  <div class="summary-item summary-item-highlight">
+    <span class="summary-label">Prix de vente</span>
+    <span class="summary-value">{{ "%.2f"|format(chiffrage['prix_vente']) }} €</span>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+{% set is_edit = (mode == 'edit') %}
+{% block title %}TER – {% if is_edit %}Modifier{% else %}Nouveau{% endif %} chiffrage{% endblock %}
+
+{% block content %}
+<div class="page-header page-header-actions">
+  <div>
+    <h2>{% if is_edit %}Modifier le chiffrage{% else %}Nouveau chiffrage{% endif %}</h2>
+    {% if is_edit %}<p class="page-subtitle">{{ chiffrage['ref_piece'] }}</p>{% endif %}
+  </div>
+  <a href="{{ url_for('chiffrages_liste') }}" class="btn btn-ghost">← Liste</a>
+</div>
+
+<form method="post" id="chiffrage-form" novalidate>
+  {# Hidden – serialised by JS before submit #}
+  <input type="hidden" name="row_ids"           id="h-row-ids">
+  <input type="hidden" name="matiere_designation" id="h-mat-desig"
+         value="{{ chiffrage['matiere_designation'] if chiffrage else '' }}">
+  <input type="hidden" name="cout_matiere" id="h-cout-matiere">
+  <input type="hidden" name="cout_mo"      id="h-cout-mo">
+  <input type="hidden" name="cout_revient" id="h-cout-revient">
+  <input type="hidden" name="prix_vente"   id="h-prix-vente">
+
+  {# ── Entête ─────────────────────────────────────────────────────────── #}
+  <section class="form-section">
+    <h3 class="section-title">Entête</h3>
+    <div class="form-grid form-grid-3">
+      <div class="form-group">
+        <label for="ref_piece">Référence pièce <span class="required">*</span></label>
+        <input type="text" id="ref_piece" name="ref_piece" class="form-control"
+               value="{{ chiffrage['ref_piece'] if chiffrage else '' }}" required autofocus>
+      </div>
+      <div class="form-group">
+        <label for="ref_client">Référence client</label>
+        <input type="text" id="ref_client" name="ref_client" class="form-control"
+               value="{{ chiffrage['ref_client'] if chiffrage else '' }}">
+      </div>
+      <div class="form-group">
+        <label for="code_affaire">Code affaire</label>
+        <input type="text" id="code_affaire" name="code_affaire" class="form-control"
+               value="{{ chiffrage['code_affaire'] if chiffrage else '' }}" placeholder="ZSO_...">
+      </div>
+      <div class="form-group">
+        <label for="quantite">Quantité</label>
+        <input type="number" id="quantite" name="quantite" class="form-control"
+               value="{{ chiffrage['quantite'] if chiffrage else 1 }}"
+               min="1" step="1" oninput="recalc()">
+      </div>
+      <div class="form-group form-group-span2">
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes" class="form-control" rows="2"
+        >{{ chiffrage['notes'] if chiffrage else '' }}</textarea>
+      </div>
+    </div>
+  </section>
+
+  {# ── Matière ─────────────────────────────────────────────────────────── #}
+  <section class="form-section">
+    <h3 class="section-title">Matière</h3>
+    <div class="form-grid form-grid-4">
+      <div class="form-group form-group-span2">
+        <label for="matiere-select">Matière (bibliothèque)</label>
+        <select id="matiere-select" name="matiere_id" class="form-control" onchange="onMatiereChange()">
+          <option value="">— Aucune matière —</option>
+          {% for m in matieres %}
+          <option value="{{ m.id }}"
+                  data-prix="{{ m.prix_kg }}"
+                  data-desig="{{ m.designation }}"
+                  {% if chiffrage and chiffrage['matiere_id'] == m.id %}selected{% endif %}>
+            {{ m.designation }} — {{ "%.2f"|format(m.prix_kg) }} €/kg
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="masse-brute">Masse brute (kg / pièce)</label>
+        <input type="number" id="masse-brute" name="matiere_masse_brute" class="form-control"
+               value="{{ chiffrage['matiere_masse_brute'] if chiffrage and chiffrage['matiere_masse_brute'] else '' }}"
+               min="0" step="0.001" placeholder="0.000" oninput="recalc()">
+      </div>
+      <div class="form-group">
+        <label for="prix-kg">Prix / kg (€)</label>
+        <input type="number" id="prix-kg" name="matiere_prix_kg" class="form-control"
+               value="{{ chiffrage['matiere_prix_kg'] if chiffrage and chiffrage['matiere_prix_kg'] else '' }}"
+               min="0" step="0.01" placeholder="0.00" oninput="recalc()">
+      </div>
+    </div>
+    <p class="inline-result">
+      Coût matière total ({{ '<span id="qty-display">1</span>'|safe }} pce) :
+      <strong id="d-cout-matiere">0,00 €</strong>
+    </p>
+  </section>
+
+  {# ── Opérations ───────────────────────────────────────────────────────── #}
+  <section class="form-section">
+    <div class="section-header-actions">
+      <h3 class="section-title">Opérations</h3>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="addRow()">+ Ajouter une ligne</button>
+    </div>
+
+    <div class="table-container">
+      <table class="data-table ops-table">
+        <thead>
+          <tr>
+            <th style="width:38%">Poste</th>
+            <th style="width:14%">Taux horaire</th>
+            <th style="width:14%">Temps (h)</th>
+            <th style="width:18%" class="text-right">Coût / pièce</th>
+            <th style="width:6%" class="text-center"></th>
+          </tr>
+        </thead>
+        <tbody id="ops-body"></tbody>
+      </table>
+    </div>
+    <p id="no-ops-msg" class="table-hint">Aucune opération — cliquez sur « + Ajouter une ligne ».</p>
+  </section>
+
+  {# ── Résumé ───────────────────────────────────────────────────────────── #}
+  <div class="summary-bar">
+    <div class="summary-item">
+      <span class="summary-label">Coût matière</span>
+      <span class="summary-value" id="s-matiere">0,00 €</span>
+    </div>
+    <span class="summary-op">+</span>
+    <div class="summary-item">
+      <span class="summary-label">Coût MO</span>
+      <span class="summary-value" id="s-mo">0,00 €</span>
+    </div>
+    <span class="summary-op">=</span>
+    <div class="summary-item summary-item-accent">
+      <span class="summary-label">Coût de revient</span>
+      <span class="summary-value" id="s-revient">0,00 €</span>
+    </div>
+    <span class="summary-op">× 1,35</span>
+    <div class="summary-item summary-item-highlight">
+      <span class="summary-label">Prix de vente</span>
+      <span class="summary-value" id="s-vente">0,00 €</span>
+    </div>
+  </div>
+
+  {# ── Actions ──────────────────────────────────────────────────────────── #}
+  <div class="form-actions">
+    <a href="{{ url_for('chiffrages_liste') }}" class="btn btn-ghost">Annuler</a>
+    <button type="submit" name="action" value="brouillon" class="btn btn-secondary">
+      💾 Enregistrer brouillon
+    </button>
+    <button type="submit" name="action" value="valide" class="btn btn-primary">
+      ✔ Valider
+    </button>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ===================================================================
+   Données bibliothèques (injectées côté serveur)
+   =================================================================== */
+const POSTES   = {{ postes_json   | safe }};
+const MATIERES = {{ matieres_json | safe }};
+
+/* Lignes existantes (mode édition) */
+const INIT_LIGNES = {{ lignes_json | safe }};
+
+let nextId = 0;
+
+/* ── Formatage ─────────────────────────────────────────────────────── */
+function eur(v) {
+  return v.toFixed(2).replace('.', ',') + ' €';
+}
+
+/* ── Recalcul global ───────────────────────────────────────────────── */
+function recalc() {
+  const qty   = Math.max(1, parseFloat(document.getElementById('quantite').value) || 1);
+  const masse = parseFloat(document.getElementById('masse-brute').value) || 0;
+  const pKg   = parseFloat(document.getElementById('prix-kg').value) || 0;
+
+  document.getElementById('qty-display').textContent = qty;
+
+  const cMatPiece = masse * pKg;
+  const cMat      = cMatPiece * qty;
+
+  let cMoPiece = 0;
+  document.querySelectorAll('.ops-row').forEach(row => {
+    const t = parseFloat(row.querySelector('.inp-temps').value) || 0;
+    const r = parseFloat(row.querySelector('.inp-taux').value)  || 0;
+    const c = t * r;
+    row.querySelector('.d-cout').textContent = eur(c);
+    cMoPiece += c;
+  });
+  const cMo     = cMoPiece * qty;
+  const cRev    = cMat + cMo;
+  const pVente  = cRev * 1.35;
+
+  /* inline matière */
+  document.getElementById('d-cout-matiere').textContent = eur(cMat);
+
+  /* barre résumé */
+  document.getElementById('s-matiere').textContent = eur(cMat);
+  document.getElementById('s-mo').textContent      = eur(cMo);
+  document.getElementById('s-revient').textContent = eur(cRev);
+  document.getElementById('s-vente').textContent   = eur(pVente);
+
+  /* champs cachés pour soumission */
+  document.getElementById('h-cout-matiere').value = cMat.toFixed(4);
+  document.getElementById('h-cout-mo').value      = cMo.toFixed(4);
+  document.getElementById('h-cout-revient').value = cRev.toFixed(4);
+  document.getElementById('h-prix-vente').value   = pVente.toFixed(4);
+}
+
+/* ── Changement matière ────────────────────────────────────────────── */
+function onMatiereChange() {
+  const sel  = document.getElementById('matiere-select');
+  const opt  = sel.selectedOptions[0];
+  const prix = opt ? (parseFloat(opt.dataset.prix) || 0) : 0;
+  const desig = opt ? (opt.dataset.desig || '') : '';
+  document.getElementById('prix-kg').value    = prix > 0 ? prix.toFixed(2) : '';
+  document.getElementById('h-mat-desig').value = desig;
+  recalc();
+}
+
+/* ── Changement poste (dans une ligne) ─────────────────────────────── */
+function onPosteChange(sel) {
+  const row  = sel.closest('tr');
+  const opt  = sel.selectedOptions[0];
+  const taux = opt ? (parseFloat(opt.dataset.taux) || 0) : 0;
+  row.querySelector('.inp-taux').value       = taux > 0 ? taux.toFixed(2) : '';
+  row.querySelector('.d-taux').textContent   = taux > 0 ? (eur(taux) + '/h') : '—';
+  recalc();
+}
+
+/* ── Ajout d'une ligne opération ───────────────────────────────────── */
+function addRow(code, temps, taux) {
+  const id    = 'r' + (nextId++);
+  const tbody = document.getElementById('ops-body');
+
+  let opts = '<option value="">— Poste —</option>';
+  POSTES.forEach(p => {
+    const sel = (p.code === code) ? ' selected' : '';
+    opts += `<option value="${p.code}" data-taux="${p.taux_horaire}"${sel}>${p.code} \u2013 ${p.designation}</option>`;
+  });
+
+  const tauxVal  = taux  != null ? taux  : (code ? (POSTES.find(p => p.code === code)?.taux_horaire || 0) : 0);
+  const tempsVal = temps != null ? temps : '';
+  const tauxDisp = tauxVal > 0 ? (eur(tauxVal) + '/h') : '—';
+
+  const tr = document.createElement('tr');
+  tr.className = 'ops-row';
+  tr.id        = id;
+  tr.innerHTML = `
+    <td>
+      <select name="${id}_code" class="form-control form-control-sm" onchange="onPosteChange(this)">
+        ${opts}
+      </select>
+    </td>
+    <td>
+      <input type="hidden" name="${id}_taux" class="inp-taux"
+             value="${tauxVal > 0 ? tauxVal.toFixed(2) : ''}">
+      <span class="d-taux">${tauxDisp}</span>
+    </td>
+    <td>
+      <input type="number" name="${id}_temps" class="form-control form-control-sm inp-temps"
+             value="${tempsVal}" min="0" step="0.25" placeholder="0.00" oninput="recalc()">
+    </td>
+    <td class="text-right"><span class="d-cout">—</span></td>
+    <td class="text-center">
+      <button type="button" class="btn-del" onclick="removeRow('${id}')" title="Supprimer">✕</button>
+    </td>`;
+
+  tbody.appendChild(tr);
+  syncRowIds();
+  recalc();
+  document.getElementById('no-ops-msg').style.display = 'none';
+}
+
+/* ── Suppression d'une ligne ───────────────────────────────────────── */
+function removeRow(id) {
+  document.getElementById(id).remove();
+  syncRowIds();
+  recalc();
+  if (!document.querySelectorAll('.ops-row').length) {
+    document.getElementById('no-ops-msg').style.display = '';
+  }
+}
+
+/* ── Synchronisation IDs → champ caché ────────────────────────────── */
+function syncRowIds() {
+  document.getElementById('h-row-ids').value =
+    [...document.querySelectorAll('.ops-row')].map(r => r.id).join(',');
+}
+
+/* ── Validation côté client avant soumission ───────────────────────── */
+let submitAction = 'brouillon';
+document.querySelectorAll('button[name="action"]').forEach(btn => {
+  btn.addEventListener('click', () => { submitAction = btn.value; });
+});
+
+document.getElementById('chiffrage-form').addEventListener('submit', function(e) {
+  const refPiece = document.getElementById('ref_piece').value.trim();
+  if (!refPiece) {
+    e.preventDefault();
+    document.getElementById('ref_piece').focus();
+    return;
+  }
+  if (submitAction === 'valide' && !document.querySelectorAll('.ops-row').length) {
+    e.preventDefault();
+    alert('Ajoutez au moins une opération avant de valider.');
+  }
+});
+
+/* ── Initialisation ────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function () {
+  /* Synchroniser l'affichage matière (cas édition) */
+  onMatiereChange();
+
+  /* Charger les lignes existantes */
+  INIT_LIGNES.forEach(l => addRow(l.poste_code, l.temps_h, l.taux_horaire));
+
+  recalc();
+});
+</script>
+{% endblock %}
