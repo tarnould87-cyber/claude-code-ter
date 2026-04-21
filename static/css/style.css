@@ -704,6 +704,32 @@ a:hover { text-decoration: underline; }
   font-weight: 300;
 }
 
+.summary-item-marge {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  min-width: auto;
+}
+
+.summary-item-marge .summary-label {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.summary-op-inline {
+  color: var(--color-muted);
+  font-size: 18px;
+  font-weight: 300;
+}
+
+.inp-marge {
+  width: 72px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  text-align: center;
+  padding: 4px 6px !important;
+}
+
 /* =========================================================
    FORM ACTIONS BAR
    ========================================================= */

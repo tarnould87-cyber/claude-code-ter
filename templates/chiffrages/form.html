@@ -86,8 +86,10 @@
       </div>
     </div>
     <p class="inline-result">
-      Coût matière total ({{ '<span id="qty-display">1</span>'|safe }} pce) :
+      Coût matière / pièce :
       <strong id="d-cout-matiere">0,00 €</strong>
+      &nbsp;·&nbsp; Total (<span id="qty-display">1</span> pce) :
+      <strong id="d-cout-matiere-total">0,00 €</strong>
     </p>
   </section>
 
@@ -118,22 +120,29 @@
   {# ── Résumé ───────────────────────────────────────────────────────────── #}
   <div class="summary-bar">
     <div class="summary-item">
-      <span class="summary-label">Coût matière</span>
+      <span class="summary-label">Coût mat. / pce</span>
       <span class="summary-value" id="s-matiere">0,00 €</span>
     </div>
     <span class="summary-op">+</span>
     <div class="summary-item">
-      <span class="summary-label">Coût MO</span>
+      <span class="summary-label">Coût MO / pce</span>
       <span class="summary-value" id="s-mo">0,00 €</span>
     </div>
     <span class="summary-op">=</span>
     <div class="summary-item summary-item-accent">
-      <span class="summary-label">Coût de revient</span>
+      <span class="summary-label">Coût rev. / pce</span>
       <span class="summary-value" id="s-revient">0,00 €</span>
     </div>
-    <span class="summary-op">× 1,35</span>
+    <div class="summary-item summary-item-marge">
+      <span class="summary-label">Taux de marge</span>
+      <span class="summary-op-inline">×</span>
+      <input type="number" id="inp-marge" name="marge" class="form-control form-control-sm inp-marge"
+             value="{{ '%.2f'|format(chiffrage['marge'] if chiffrage and chiffrage['marge'] else 1.35) }}"
+             min="1.00" max="9.99" step="0.01" oninput="recalc()">
+    </div>
+    <span class="summary-op">=</span>
     <div class="summary-item summary-item-highlight">
-      <span class="summary-label">Prix de vente</span>
+      <span class="summary-label">Prix vente / pce</span>
       <span class="summary-value" id="s-vente">0,00 €</span>
     </div>
   </div>
@@ -177,31 +186,32 @@ function recalc() {
 
   document.getElementById('qty-display').textContent = qty;
 
-  const cMatPiece = masse * pKg;
-  const cMat      = cMatPiece * qty;
+  const marge = Math.max(1, parseFloat(document.getElementById('inp-marge').value) || 1.35);
+  const cMat  = masse * pKg;  /* coût matière / pièce */
 
-  let cMoPiece = 0;
+  let cMo = 0;
   document.querySelectorAll('.ops-row').forEach(row => {
     const t = parseFloat(row.querySelector('.inp-temps').value) || 0;
     const r = parseFloat(row.querySelector('.inp-taux').value)  || 0;
     const c = t * r;
     row.querySelector('.d-cout').textContent = eur(c);
-    cMoPiece += c;
+    cMo += c;
   });
-  const cMo     = cMoPiece * qty;
-  const cRev    = cMat + cMo;
-  const pVente  = cRev * 1.35;
+  /* cMo = coût MO / pièce */
+  const cRev   = cMat + cMo;
+  const pVente = cRev * marge;
 
-  /* inline matière */
-  document.getElementById('d-cout-matiere').textContent = eur(cMat);
+  /* inline matière : par pièce + total lot */
+  document.getElementById('d-cout-matiere').textContent       = eur(cMat);
+  document.getElementById('d-cout-matiere-total').textContent = eur(cMat * qty);
 
-  /* barre résumé */
+  /* barre résumé (valeurs / pièce) */
   document.getElementById('s-matiere').textContent = eur(cMat);
   document.getElementById('s-mo').textContent      = eur(cMo);
   document.getElementById('s-revient').textContent = eur(cRev);
   document.getElementById('s-vente').textContent   = eur(pVente);
 
-  /* champs cachés pour soumission */
+  /* champs cachés pour soumission (valeurs / pièce) */
   document.getElementById('h-cout-matiere').value = cMat.toFixed(4);
   document.getElementById('h-cout-mo').value      = cMo.toFixed(4);
   document.getElementById('h-cout-revient').value = cRev.toFixed(4);

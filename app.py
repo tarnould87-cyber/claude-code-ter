@@ -67,6 +67,7 @@ def init_db():
                 cout_mo             REAL DEFAULT 0,
                 cout_revient        REAL DEFAULT 0,
                 prix_vente          REAL DEFAULT 0,
+                marge               REAL DEFAULT 1.35,
                 created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (matiere_id) REFERENCES matieres_lib(id)
@@ -84,6 +85,10 @@ def init_db():
                 FOREIGN KEY (chiffrage_id) REFERENCES chiffrages(id) ON DELETE CASCADE
             );
         ''')
+        try:
+            conn.execute('ALTER TABLE chiffrages ADD COLUMN marge REAL DEFAULT 1.35')
+        except Exception:
+            pass
 
 
 def seed_libraries(conn):
@@ -257,7 +262,8 @@ def _save(conn, chiffrage_id=None):
     masse     = safe_float(request.form.get('matiere_masse_brute', 0))
     prix_kg   = safe_float(request.form.get('matiere_prix_kg', 0))
     mat_desig = request.form.get('matiere_designation', '').strip()
-    c_mat     = round(masse * prix_kg * quantite, 4)
+    marge     = round(max(1.0, min(9.99, safe_float(request.form.get('marge', 1.35), default=1.35))), 4)
+    c_mat     = round(masse * prix_kg, 4)  # coût / pièce
 
     postes_map = {r['code']: dict(r) for r in conn.execute('SELECT * FROM postes_lib WHERE actif=1')}
 
@@ -282,20 +288,20 @@ def _save(conn, chiffrage_id=None):
     if statut == 'valide' and not lignes:
         return None, 'Ajoutez au moins une opération avant de valider.'
 
-    c_mo      = round(sum(l['cout_ligne'] for l in lignes) * quantite, 4)
+    c_mo      = round(sum(l['cout_ligne'] for l in lignes), 4)  # coût / pièce
     c_revient = round(c_mat + c_mo, 4)
-    p_vente   = round(c_revient * MARGE, 4)
+    p_vente   = round(c_revient * marge, 4)
 
     vals = (ref_piece, ref_client, code_affaire, quantite, notes, statut,
-            mat_id, mat_desig, masse, prix_kg, c_mat, c_mo, c_revient, p_vente)
+            mat_id, mat_desig, masse, prix_kg, c_mat, c_mo, c_revient, p_vente, marge)
 
     if chiffrage_id is None:
         cur = conn.execute('''
             INSERT INTO chiffrages
               (ref_piece,ref_client,code_affaire,quantite,notes,statut,
                matiere_id,matiere_designation,matiere_masse_brute,matiere_prix_kg,
-               cout_matiere,cout_mo,cout_revient,prix_vente,operateur)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+               cout_matiere,cout_mo,cout_revient,prix_vente,marge,operateur)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         ''', vals + (session['username'],))
         chiffrage_id = cur.lastrowid
     else:
@@ -303,7 +309,7 @@ def _save(conn, chiffrage_id=None):
             UPDATE chiffrages SET
               ref_piece=?,ref_client=?,code_affaire=?,quantite=?,notes=?,statut=?,
               matiere_id=?,matiere_designation=?,matiere_masse_brute=?,matiere_prix_kg=?,
-              cout_matiere=?,cout_mo=?,cout_revient=?,prix_vente=?,
+              cout_matiere=?,cout_mo=?,cout_revient=?,prix_vente=?,marge=?,
               updated_at=CURRENT_TIMESTAMP
             WHERE id=?
         ''', vals + (chiffrage_id,))
@@ -409,14 +415,15 @@ def chiffrage_dupliquer(chiffrage_id):
             INSERT INTO chiffrages
               (ref_piece,ref_client,code_affaire,quantite,notes,operateur,statut,
                matiere_id,matiere_designation,matiere_masse_brute,matiere_prix_kg,
-               cout_matiere,cout_mo,cout_revient,prix_vente)
-            VALUES (?,?,?,?,?,'brouillon',?,?,?,?,?,?,?,?,?)
+               cout_matiere,cout_mo,cout_revient,prix_vente,marge)
+            VALUES (?,?,?,?,?,?,'brouillon',?,?,?,?,?,?,?,?,?)
         ''', (f"{src['ref_piece']} (copie)", src['ref_client'], src['code_affaire'],
               src['quantite'], src['notes'],
               session['username'],
               src['matiere_id'], src['matiere_designation'],
               src['matiere_masse_brute'], src['matiere_prix_kg'],
-              src['cout_matiere'], src['cout_mo'], src['cout_revient'], src['prix_vente']))
+              src['cout_matiere'], src['cout_mo'], src['cout_revient'], src['prix_vente'],
+              src['marge'] if src['marge'] else 1.35))
         new_id = cur.lastrowid
 
         for l in conn.execute(
