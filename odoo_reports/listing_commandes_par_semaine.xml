@@ -58,7 +58,7 @@
                                 à
                                 <t t-esc="edition_dt.strftime('%H:%M')"/>
                             </strong>
-                            &nbsp;|&nbsp;
+                            &#160;|&#160;
                             Semaine en cours : <strong>S<t t-esc="edition_dt.strftime('%V')"/></strong>
                         </div>
                     </div>
@@ -68,8 +68,8 @@
             <!-- Légende couleurs délai -->
             <div style="font-size: 10px; margin-bottom: 10px; padding: 4px 10px; background: #f8f9fa; border: 1px solid #dee2e6; display: inline-block; border-radius: 3px;">
                 Délai :
-                <span style="color: red; font-weight: bold;">■</span> Dépassé &nbsp;
-                <span style="color: darkorange; font-weight: bold;">■</span> Expire dans ≤ 2 jours &nbsp;
+                <span style="color: red; font-weight: bold;">■</span> Dépassé &#160;
+                <span style="color: darkorange; font-weight: bold;">■</span> Expire dans ≤ 2 jours &#160;
                 <span style="color: black;">■</span> OK
             </div>
 
