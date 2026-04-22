@@ -106,15 +106,15 @@
 
                     <!-- En-tête de colonnes (répété sur chaque page par wkhtmltopdf) -->
                     <thead>
-                        <tr style="background-color: #dce3ea; color: #222;">
-                            <th style="width: 7%;  text-align: center;">Semaine</th>
+                        <tr style="background-color: #eff2f5; color: #222;">
+                            <th style="width: 6%;  text-align: center;">Semaine</th>
                             <th style="width: 3%;  text-align: center;">#</th>
-                            <th style="width: 11%;">N° Commande</th>
-                            <th style="width: 8%;">Date cmd</th>
-                            <th style="width: 19%;">Société</th>
-                            <th style="width: 13%;">Réf. client</th>
-                            <th style="width: 11%;">Échéance(s)</th>
-                            <th style="width: 28%;">N° OF</th>
+                            <th style="width: 9%;">N° Cde</th>
+                            <th style="width: 7%;">Date</th>
+                            <th style="width: 18%;">Société</th>
+                            <th style="width: 16%;">Réf. client</th>
+                            <th style="width: 9%;">Échéance</th>
+                            <th style="width: 32%;">N° OF</th>
                         </tr>
                     </thead>
 
@@ -171,7 +171,7 @@
                                     <!-- Date commande -->
                                     <td>
                                         <t t-if="order.create_date">
-                                            <t t-esc="order.create_date.strftime('%d/%m/%Y')"/>
+                                            <t t-esc="order.create_date.strftime('%d/%m/%y')"/>
                                         </t>
                                         <t t-else="">-</t>
                                     </td>
@@ -196,7 +196,7 @@
                                             <t t-set="_seen" t-value="[]"/>
                                             <t t-foreach="_wmos" t-as="mo">
                                                 <t t-if="mo.date_deadline">
-                                                    <t t-set="_ds"   t-value="mo.date_deadline.strftime('%d/%m/%Y')"/>
+                                                    <t t-set="_ds"   t-value="mo.date_deadline.strftime('%d/%m/%y')"/>
                                                     <t t-if="_ds not in _seen">
                                                         <t t-set="_seen"  t-value="_seen + [_ds]"/>
                                                         <t t-set="_dd"   t-value="mo.date_deadline.date()"/>
@@ -212,14 +212,14 @@
                                             <t t-set="_diff" t-value="(_cd - today_date).days"/>
                                             <t t-set="_col"  t-value="'color:red;font-weight:bold;' if _diff &lt; 0 else ('color:darkorange;font-weight:bold;' if _diff &lt;= 2 else 'color:black;')"/>
                                             <span t-att-style="_col">
-                                                <t t-esc="order.commitment_date.strftime('%d/%m/%Y')"/>
+                                                <t t-esc="order.commitment_date.strftime('%d/%m/%y')"/>
                                             </span>
                                         </t>
                                         <t t-else="">
                                             <!-- Fallback date_order en bleu -->
                                             <span style="color: #2980b9;">
                                                 <t t-if="order.date_order">
-                                                    <t t-esc="order.date_order.strftime('%d/%m/%Y')"/>
+                                                    <t t-esc="order.date_order.strftime('%d/%m/%y')"/>
                                                 </t>
                                                 <t t-else="">-</t>
                                             </span>
