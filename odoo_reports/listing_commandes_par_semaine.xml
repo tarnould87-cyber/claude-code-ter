@@ -5,9 +5,9 @@
     <t t-set="edition_dt" t-value="datetime.datetime.now()"/>
     <t t-set="today_date"  t-value="edition_dt.date()"/>
 
-    <!-- ── Données : toutes les commandes actives (non annulées, non facturées) ── -->
+    <!-- ── Données : commandes confirmées/verrouillées, non entièrement facturées ── -->
     <t t-set="filtered_docs" t-value="env['sale.order'].search([
-        ('state', 'not in', ['cancel']),
+        ('state', 'in', ['sale', 'done']),
         ('invoice_status', '!=', 'invoiced'),
     ], order='name')"/>
 
@@ -76,13 +76,13 @@
                     <!-- En-tête de colonnes (répété sur chaque page par wkhtmltopdf) -->
                     <thead>
                         <tr style="background-color: #eff2f5; color: #222;">
-                            <th style="width: 6%;  text-align: center;">Semaine</th>
-                            <th style="width: 3%;  text-align: center;">#</th>
-                            <th style="width: 9%;">N° Cde</th>
-                            <th style="width: 7%;">Date</th>
-                            <th style="width: 18%;">Société</th>
-                            <th style="width: 16%;">Réf. client</th>
-                            <th style="width: 9%;">Échéance</th>
+                            <th style="width: 5%;  text-align: center;">Semaine</th>
+                            <th style="width: 2%;  text-align: center;">#</th>
+                            <th style="width: 8%;">N° Cde</th>
+                            <th style="width: 6%;">Date</th>
+                            <th style="width: 15%;">Société</th>
+                            <th style="width: 24%;">Réf. client</th>
+                            <th style="width: 8%;">Échéance</th>
                             <th style="width: 32%;">N° OF</th>
                         </tr>
                     </thead>

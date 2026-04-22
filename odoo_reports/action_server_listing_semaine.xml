@@ -38,7 +38,7 @@
     ], limit=1)
 
     declencheur = env['sale.order'].search([
-        ('state', 'not in', ['cancel']),
+        ('state', 'in', ['sale', 'done']),
         ('invoice_status', '!=', 'invoiced'),
     ], order='id asc', limit=1)
 
@@ -63,7 +63,7 @@ rapport = env['ir.actions.report'].search([
 ], limit=1)
 
 declencheur = env['sale.order'].search([
-    ('state', 'not in', ['cancel']),
+    ('state', 'in', ['sale', 'done']),
     ('invoice_status', '!=', 'invoiced'),
 ], order='id asc', limit=1)
 
