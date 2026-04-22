@@ -1,256 +1,290 @@
 <t t-name="studio_customization.listing_commandes_par_semaine">
-<t t-call="web.basic_layout">
 
-    <!-- ── Variables globales ── -->
-    <t t-set="edition_dt" t-value="datetime.datetime.now()"/>
-    <t t-set="today_date"  t-value="edition_dt.date()"/>
+    <!--
+        RAPPORT LISTING — CONCEPTION "LISTING GLOBAL"
+        ==============================================
+        Ce rapport s'auto-alimente via env.search() : il affiche TOUJOURS
+        l'ensemble des commandes actives, quel que soit l'enregistrement
+        déclencheur.
 
-    <!-- ── Filtrage : exclure annulées et entièrement facturées ── -->
-    <t t-set="filtered_docs" t-value="docs.filtered(
-        lambda o: o.state != 'cancel' and o.invoice_status != 'invoiced'
-    )"/>
+        GARDE ANTI-DOUBLON : si Odoo appelle le template une fois par
+        enregistrement (mode per-record, Odoo ≤ 13 ou config Studio),
+        seul le premier appel (commande active la plus ancienne par ID)
+        produit le contenu. Les autres appels rendent un document vide,
+        évitant les pages dupliquées.
 
-    <!-- ── Phase 1 : collecte des semaines uniques ──
-         Priorité : date_deadline des OF > commitment_date > date_order
+        DÉCLENCHEMENT RECOMMANDÉ :
+          - Depuis un bouton / action serveur passant un seul enregistrement
+          - Depuis la vue liste en sélectionnant TOUS les enregistrements
+            (Odoo 14+ : rendu en lot, template appelé une seule fois)
     -->
-    <t t-set="week_list" t-value="[]"/>
-    <t t-foreach="filtered_docs" t-as="order">
-        <t t-set="_mo_dl" t-value="order.mrp_production_ids.filtered(lambda mo: mo.date_deadline)"/>
-        <t t-if="_mo_dl">
-            <t t-foreach="_mo_dl" t-as="mo">
-                <t t-set="_wk" t-value="mo.date_deadline.isocalendar()[0] * 100 + mo.date_deadline.isocalendar()[1]"/>
-                <t t-if="_wk not in week_list">
-                    <t t-set="week_list" t-value="week_list + [_wk]"/>
+
+    <!-- Garde : trouver le premier enregistrement actif (par ID) -->
+    <t t-set="_first_active" t-value="env['sale.order'].search([
+        ('state', 'not in', ['cancel']),
+        ('invoice_status', '!=', 'invoiced'),
+    ], order='id asc', limit=1)"/>
+
+    <!-- Rendre le contenu uniquement pour le premier enregistrement actif.
+         En mode batch (Odoo 14+), docs contient toutes les commandes :
+         docs[0] sera bien le premier actif après tri implicite. -->
+    <t t-if="not _first_active or not docs or docs[0].id == _first_active.id">
+
+        <t t-call="web.basic_layout">
+
+            <!-- ── Variables globales ── -->
+            <t t-set="edition_dt" t-value="datetime.datetime.now()"/>
+            <t t-set="today_date"  t-value="edition_dt.date()"/>
+
+            <!-- ── Données : toujours l'ensemble des commandes actives ── -->
+            <t t-set="filtered_docs" t-value="env['sale.order'].search([
+                ('state', 'not in', ['cancel']),
+                ('invoice_status', '!=', 'invoiced'),
+            ], order='name')"/>
+
+            <!-- ── Phase 1 : collecte des semaines uniques ──
+                 Priorité : date_deadline des OF > commitment_date > date_order
+            -->
+            <t t-set="week_list" t-value="[]"/>
+            <t t-foreach="filtered_docs" t-as="order">
+                <t t-set="_mo_dl" t-value="order.mrp_production_ids.filtered(lambda mo: mo.date_deadline)"/>
+                <t t-if="_mo_dl">
+                    <t t-foreach="_mo_dl" t-as="mo">
+                        <t t-set="_wk" t-value="mo.date_deadline.isocalendar()[0] * 100 + mo.date_deadline.isocalendar()[1]"/>
+                        <t t-if="_wk not in week_list">
+                            <t t-set="week_list" t-value="week_list + [_wk]"/>
+                        </t>
+                    </t>
+                </t>
+                <t t-elif="order.commitment_date">
+                    <t t-set="_wk" t-value="order.commitment_date.isocalendar()[0] * 100 + order.commitment_date.isocalendar()[1]"/>
+                    <t t-if="_wk not in week_list">
+                        <t t-set="week_list" t-value="week_list + [_wk]"/>
+                    </t>
+                </t>
+                <t t-elif="order.date_order">
+                    <t t-set="_wk" t-value="order.date_order.isocalendar()[0] * 100 + order.date_order.isocalendar()[1]"/>
+                    <t t-if="_wk not in week_list">
+                        <t t-set="week_list" t-value="week_list + [_wk]"/>
+                    </t>
                 </t>
             </t>
-        </t>
-        <t t-elif="order.commitment_date">
-            <t t-set="_wk" t-value="order.commitment_date.isocalendar()[0] * 100 + order.commitment_date.isocalendar()[1]"/>
-            <t t-if="_wk not in week_list">
-                <t t-set="week_list" t-value="week_list + [_wk]"/>
-            </t>
-        </t>
-        <t t-elif="order.date_order">
-            <t t-set="_wk" t-value="order.date_order.isocalendar()[0] * 100 + order.date_order.isocalendar()[1]"/>
-            <t t-if="_wk not in week_list">
-                <t t-set="week_list" t-value="week_list + [_wk]"/>
-            </t>
-        </t>
-    </t>
-    <t t-set="sorted_weeks" t-value="sorted(week_list)"/>
+            <t t-set="sorted_weeks" t-value="sorted(week_list)"/>
 
-    <!-- ════════════════════════════════════════════════════════ -->
-    <div class="page">
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <div class="page">
 
-        <!-- En-tête -->
-        <div style="margin-bottom: 12px;">
-            <h2 style="margin: 0; font-size: 18px;">Commandes par semaine d'échéance</h2>
-            <div style="font-size: 11px; color: #555; margin-top: 3px;">
-                Édité le :
-                <strong>
-                    <t t-esc="edition_dt.strftime('%d/%m/%Y')"/>
-                    à
-                    <t t-esc="edition_dt.strftime('%H:%M')"/>
-                </strong>
-                &#160;|&#160;
-                Semaine en cours : <strong>S<t t-esc="edition_dt.strftime('%V')"/></strong>
-            </div>
-        </div>
+                <!-- En-tête -->
+                <div style="margin-bottom: 12px;">
+                    <h2 style="margin: 0; font-size: 18px;">Commandes par semaine d'échéance</h2>
+                    <div style="font-size: 11px; color: #555; margin-top: 3px;">
+                        Édité le :
+                        <strong>
+                            <t t-esc="edition_dt.strftime('%d/%m/%Y')"/>
+                            à
+                            <t t-esc="edition_dt.strftime('%H:%M')"/>
+                        </strong>
+                        &#160;|&#160;
+                        Semaine en cours : <strong>S<t t-esc="edition_dt.strftime('%V')"/></strong>
+                        &#160;|&#160;
+                        <t t-esc="len(filtered_docs)"/> commande(s) active(s)
+                    </div>
+                </div>
 
-        <!-- Légende -->
-        <div style="font-size: 10px; margin-bottom: 8px; padding: 3px 8px; background: #f8f9fa; border: 1px solid #dee2e6; display: inline-block; border-radius: 3px;">
-            Délai :
-            <span style="color: red; font-weight: bold;">■</span> Dépassé &#160;
-            <span style="color: darkorange; font-weight: bold;">■</span> Expire dans ≤ 2 jours &#160;
-            <span style="color: black;">■</span> OK &#160;
-            <span style="color: #2980b9;">■</span> Date de confirmation (sans échéance OF ni commande)
-        </div>
+                <!-- Légende -->
+                <div style="font-size: 10px; margin-bottom: 8px; padding: 3px 8px; background: #f8f9fa; border: 1px solid #dee2e6; display: inline-block; border-radius: 3px;">
+                    Délai :
+                    <span style="color: red; font-weight: bold;">■</span> Dépassé &#160;
+                    <span style="color: darkorange; font-weight: bold;">■</span> Expire dans ≤ 2 jours &#160;
+                    <span style="color: black;">■</span> OK &#160;
+                    <span style="color: #2980b9;">■</span> Date de confirmation (sans échéance OF ni commande)
+                </div>
 
-        <!-- ── Tableau unique ── -->
-        <table class="table table-sm table-bordered"
-               style="width: 100%; font-size: 11px; border-collapse: collapse; margin-top: 4px;">
-            <thead>
-                <tr style="background-color: #2c3e50; color: white;">
-                    <th style="width: 7%;  text-align: center;">Semaine</th>
-                    <th style="width: 3%;  text-align: center;">#</th>
-                    <th style="width: 11%;">N° Commande</th>
-                    <th style="width: 8%;">Date cmd</th>
-                    <th style="width: 19%;">Société</th>
-                    <th style="width: 13%;">Réf. client</th>
-                    <th style="width: 11%;">Échéance(s)</th>
-                    <th style="width: 28%;">N° OF</th>
-                </tr>
-            </thead>
-            <tbody>
+                <!-- ── Tableau unique, un <tbody> par semaine ── -->
+                <table class="table table-sm table-bordered"
+                       style="width: 100%; font-size: 11px; border-collapse: collapse; margin-top: 4px;">
 
-                <t t-foreach="sorted_weeks" t-as="week_key">
-                    <t t-set="week_num"  t-value="week_key % 100"/>
-                    <t t-set="week_year" t-value="str(week_key // 100)[2:]"/>
+                    <!-- En-tête de colonnes (répété sur chaque page par wkhtmltopdf) -->
+                    <thead>
+                        <tr style="background-color: #2c3e50; color: white;">
+                            <th style="width: 7%;  text-align: center;">Semaine</th>
+                            <th style="width: 3%;  text-align: center;">#</th>
+                            <th style="width: 11%;">N° Commande</th>
+                            <th style="width: 8%;">Date cmd</th>
+                            <th style="width: 19%;">Société</th>
+                            <th style="width: 13%;">Réf. client</th>
+                            <th style="width: 11%;">Échéance(s)</th>
+                            <th style="width: 28%;">N° OF</th>
+                        </tr>
+                    </thead>
 
-                    <!-- Couleurs alternées par semaine (pair = bleu, impair = vert) -->
-                    <t t-set="_even"   t-value="week_key_index % 2 == 0"/>
-                    <t t-set="_hdr_bg" t-value="'background-color:#1a5276;color:white;' if _even else 'background-color:#117a65;color:white;'"/>
-                    <t t-set="_row_bg" t-value="'background-color:#d6eaf8;' if _even else 'background-color:#d5f5e3;'"/>
+                    <!-- Un <tbody> par semaine → page-break-inside: avoid sur le groupe -->
+                    <t t-foreach="sorted_weeks" t-as="week_key">
+                        <t t-set="week_num"  t-value="week_key % 100"/>
+                        <t t-set="week_year" t-value="str(week_key // 100)[2:]"/>
 
-                    <!-- Commandes appartenant à cette semaine -->
-                    <t t-set="week_orders" t-value="filtered_docs.filtered(lambda o:
-                        bool(o.mrp_production_ids.filtered(lambda mo: mo.date_deadline and mo.date_deadline.isocalendar()[0] * 100 + mo.date_deadline.isocalendar()[1] == week_key))
-                        or (not o.mrp_production_ids.filtered(lambda mo: mo.date_deadline) and o.commitment_date and o.commitment_date.isocalendar()[0] * 100 + o.commitment_date.isocalendar()[1] == week_key)
-                        or (not o.mrp_production_ids.filtered(lambda mo: mo.date_deadline) and not o.commitment_date and o.date_order and o.date_order.isocalendar()[0] * 100 + o.date_order.isocalendar()[1] == week_key)
-                    )"/>
-                    <t t-set="n_rows" t-value="len(week_orders)"/>
+                        <!-- Couleurs alternées : pair = bleu, impair = vert -->
+                        <t t-set="_even"   t-value="week_key_index % 2 == 0"/>
+                        <t t-set="_hdr_bg" t-value="'background-color:#1a5276;color:white;' if _even else 'background-color:#117a65;color:white;'"/>
+                        <t t-set="_row_bg" t-value="'background-color:#d6eaf8;' if _even else 'background-color:#d5f5e3;'"/>
 
-                    <t t-foreach="week_orders" t-as="order">
-
-                        <!-- OF de cette commande dont la deadline est dans cette semaine -->
-                        <t t-set="_wmos" t-value="order.mrp_production_ids.filtered(
-                            lambda mo: mo.date_deadline and
-                            mo.date_deadline.isocalendar()[0] * 100 + mo.date_deadline.isocalendar()[1] == week_key
+                        <!-- Commandes de cette semaine -->
+                        <t t-set="week_orders" t-value="filtered_docs.filtered(lambda o:
+                            bool(o.mrp_production_ids.filtered(lambda mo: mo.date_deadline and mo.date_deadline.isocalendar()[0] * 100 + mo.date_deadline.isocalendar()[1] == week_key))
+                            or (not o.mrp_production_ids.filtered(lambda mo: mo.date_deadline) and o.commitment_date and o.commitment_date.isocalendar()[0] * 100 + o.commitment_date.isocalendar()[1] == week_key)
+                            or (not o.mrp_production_ids.filtered(lambda mo: mo.date_deadline) and not o.commitment_date and o.date_order and o.date_order.isocalendar()[0] * 100 + o.date_order.isocalendar()[1] == week_key)
                         )"/>
+                        <t t-set="n_rows" t-value="len(week_orders)"/>
 
-                        <tr t-att-style="_row_bg">
+                        <tbody style="page-break-inside: avoid;">
+                            <t t-foreach="week_orders" t-as="order">
 
-                            <!-- ── Cellule "Semaine" fusionnée (rowspan = n_rows, 1re ligne seulement) ── -->
-                            <t t-if="order_first">
-                                <td t-att-rowspan="n_rows"
-                                    t-att-style="_hdr_bg + 'text-align:center; vertical-align:middle; padding: 6px 4px;'">
-                                    <span style="font-size: 13px; font-weight: bold; display: block;">
-                                        S<t t-esc="week_num"/> / <t t-esc="week_year"/>
-                                    </span>
-                                    <span style="font-size: 9px; font-weight: normal; display: block; margin-top: 4px;">
-                                        (<t t-esc="n_rows"/> Cmde(s))
-                                    </span>
-                                </td>
-                            </t>
+                                <!-- OF de cette commande dans cette semaine -->
+                                <t t-set="_wmos" t-value="order.mrp_production_ids.filtered(
+                                    lambda mo: mo.date_deadline and
+                                    mo.date_deadline.isocalendar()[0] * 100 + mo.date_deadline.isocalendar()[1] == week_key
+                                )"/>
 
-                            <!-- # ligne dans la semaine -->
-                            <td style="text-align: center;">
-                                <t t-esc="order_index + 1"/>
-                            </td>
+                                <tr t-att-style="_row_bg">
 
-                            <!-- N° commande -->
-                            <td>
-                                <strong><t t-esc="order.name"/></strong>
-                            </td>
-
-                            <!-- Date commande -->
-                            <td>
-                                <t t-if="order.create_date">
-                                    <t t-esc="order.create_date.strftime('%d/%m/%Y')"/>
-                                </t>
-                                <t t-else="">-</t>
-                            </td>
-
-                            <!-- Société -->
-                            <td>
-                                <t t-if="order.partner_id and order.partner_id.commercial_company_name">
-                                    <t t-esc="order.partner_id.commercial_company_name"/>
-                                </t>
-                                <t t-elif="order.partner_id">
-                                    <t t-esc="order.partner_id.name"/>
-                                </t>
-                                <t t-else="">-</t>
-                            </td>
-
-                            <!-- Réf. client -->
-                            <td><t t-esc="order.client_order_ref or '-'"/></td>
-
-                            <!-- ── Échéance(s) avec code couleur ── -->
-                            <td>
-                                <t t-if="_wmos">
-                                    <!-- Dates distinctes des OF de cette semaine -->
-                                    <t t-set="_seen" t-value="[]"/>
-                                    <t t-foreach="_wmos" t-as="mo">
-                                        <t t-if="mo.date_deadline">
-                                            <t t-set="_ds"   t-value="mo.date_deadline.strftime('%d/%m/%Y')"/>
-                                            <t t-if="_ds not in _seen">
-                                                <t t-set="_seen"  t-value="_seen + [_ds]"/>
-                                                <t t-set="_dd"   t-value="mo.date_deadline.date()"/>
-                                                <t t-set="_diff" t-value="(_dd - today_date).days"/>
-                                                <t t-set="_col"  t-value="'color:red;font-weight:bold;' if _diff &lt; 0 else ('color:darkorange;font-weight:bold;' if _diff &lt;= 2 else 'color:black;')"/>
-                                                <span t-att-style="_col"><t t-esc="_ds"/></span>
-                                                <t t-if="not mo_last"><br/></t>
-                                            </t>
-                                        </t>
+                                    <!-- ── Cellule "Semaine" fusionnée (1re ligne du groupe) ── -->
+                                    <t t-if="order_first">
+                                        <td t-att-rowspan="n_rows"
+                                            t-att-style="_hdr_bg + 'text-align:center; vertical-align:middle; padding: 6px 4px;'">
+                                            <span style="font-size: 13px; font-weight: bold; display: block;">
+                                                S<t t-esc="week_num"/> / <t t-esc="week_year"/>
+                                            </span>
+                                            <span style="font-size: 9px; font-weight: normal; display: block; margin-top: 4px;">
+                                                (<t t-esc="n_rows"/> Cmde(s))
+                                            </span>
+                                        </td>
                                     </t>
-                                </t>
-                                <t t-elif="order.commitment_date">
-                                    <t t-set="_cd"   t-value="order.commitment_date.date()"/>
-                                    <t t-set="_diff" t-value="(_cd - today_date).days"/>
-                                    <t t-set="_col"  t-value="'color:red;font-weight:bold;' if _diff &lt; 0 else ('color:darkorange;font-weight:bold;' if _diff &lt;= 2 else 'color:black;')"/>
-                                    <span t-att-style="_col">
-                                        <t t-esc="order.commitment_date.strftime('%d/%m/%Y')"/>
-                                    </span>
-                                </t>
-                                <t t-else="">
-                                    <!-- Fallback date_order affiché en bleu -->
-                                    <span style="color: #2980b9;">
-                                        <t t-if="order.date_order">
-                                            <t t-esc="order.date_order.strftime('%d/%m/%Y')"/>
+
+                                    <!-- # dans la semaine -->
+                                    <td style="text-align: center;">
+                                        <t t-esc="order_index + 1"/>
+                                    </td>
+
+                                    <!-- N° commande -->
+                                    <td><strong><t t-esc="order.name"/></strong></td>
+
+                                    <!-- Date commande -->
+                                    <td>
+                                        <t t-if="order.create_date">
+                                            <t t-esc="order.create_date.strftime('%d/%m/%Y')"/>
                                         </t>
                                         <t t-else="">-</t>
-                                    </span>
-                                </t>
-                            </td>
+                                    </td>
 
-                            <!-- ── N° OF ── -->
-                            <td>
-                                <t t-if="_wmos">
-                                    <!-- OF de cette semaine uniquement -->
-                                    <t t-if="len(_wmos) &lt;= 4">
-                                        <t t-esc="', '.join(_wmos.mapped('name'))"/>
-                                    </t>
-                                    <t t-else="">
-                                        <t t-foreach="_wmos" t-as="mo">
-                                            <t t-esc="mo.name"/>
-                                            <t t-if="not mo_last">, </t>
-                                            <t t-if="(mo_index + 1) % 4 == 0 and not mo_last"><br/></t>
+                                    <!-- Société -->
+                                    <td>
+                                        <t t-if="order.partner_id and order.partner_id.commercial_company_name">
+                                            <t t-esc="order.partner_id.commercial_company_name"/>
                                         </t>
-                                    </t>
-                                </t>
-                                <t t-elif="order.mrp_production_ids">
-                                    <!-- Fallback : tous les OF de la commande -->
-                                    <t t-if="len(order.mrp_production_ids) &lt;= 4">
-                                        <t t-esc="', '.join(order.mrp_production_ids.mapped('name'))"/>
-                                    </t>
-                                    <t t-else="">
-                                        <t t-foreach="order.mrp_production_ids" t-as="mo">
-                                            <t t-esc="mo.name"/>
-                                            <t t-if="not mo_last">, </t>
-                                            <t t-if="(mo_index + 1) % 4 == 0 and not mo_last"><br/></t>
+                                        <t t-elif="order.partner_id">
+                                            <t t-esc="order.partner_id.name"/>
                                         </t>
-                                    </t>
-                                </t>
-                                <t t-else="">-</t>
-                            </td>
+                                        <t t-else="">-</t>
+                                    </td>
 
+                                    <!-- Réf. client -->
+                                    <td><t t-esc="order.client_order_ref or '-'"/></td>
+
+                                    <!-- ── Échéance(s) ── -->
+                                    <td>
+                                        <t t-if="_wmos">
+                                            <t t-set="_seen" t-value="[]"/>
+                                            <t t-foreach="_wmos" t-as="mo">
+                                                <t t-if="mo.date_deadline">
+                                                    <t t-set="_ds"   t-value="mo.date_deadline.strftime('%d/%m/%Y')"/>
+                                                    <t t-if="_ds not in _seen">
+                                                        <t t-set="_seen"  t-value="_seen + [_ds]"/>
+                                                        <t t-set="_dd"   t-value="mo.date_deadline.date()"/>
+                                                        <t t-set="_diff" t-value="(_dd - today_date).days"/>
+                                                        <t t-set="_col"  t-value="'color:red;font-weight:bold;' if _diff &lt; 0 else ('color:darkorange;font-weight:bold;' if _diff &lt;= 2 else 'color:black;')"/>
+                                                        <span t-att-style="_col"><t t-esc="_ds"/></span><br/>
+                                                    </t>
+                                                </t>
+                                            </t>
+                                        </t>
+                                        <t t-elif="order.commitment_date">
+                                            <t t-set="_cd"   t-value="order.commitment_date.date()"/>
+                                            <t t-set="_diff" t-value="(_cd - today_date).days"/>
+                                            <t t-set="_col"  t-value="'color:red;font-weight:bold;' if _diff &lt; 0 else ('color:darkorange;font-weight:bold;' if _diff &lt;= 2 else 'color:black;')"/>
+                                            <span t-att-style="_col">
+                                                <t t-esc="order.commitment_date.strftime('%d/%m/%Y')"/>
+                                            </span>
+                                        </t>
+                                        <t t-else="">
+                                            <!-- Fallback date_order en bleu -->
+                                            <span style="color: #2980b9;">
+                                                <t t-if="order.date_order">
+                                                    <t t-esc="order.date_order.strftime('%d/%m/%Y')"/>
+                                                </t>
+                                                <t t-else="">-</t>
+                                            </span>
+                                        </t>
+                                    </td>
+
+                                    <!-- ── N° OF ── -->
+                                    <td>
+                                        <t t-if="_wmos">
+                                            <t t-if="len(_wmos) &lt;= 4">
+                                                <t t-esc="', '.join(_wmos.mapped('name'))"/>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-foreach="_wmos" t-as="mo">
+                                                    <t t-esc="mo.name"/>
+                                                    <t t-if="not mo_last">, </t>
+                                                    <t t-if="(mo_index + 1) % 4 == 0 and not mo_last"><br/></t>
+                                                </t>
+                                            </t>
+                                        </t>
+                                        <t t-elif="order.mrp_production_ids">
+                                            <t t-if="len(order.mrp_production_ids) &lt;= 4">
+                                                <t t-esc="', '.join(order.mrp_production_ids.mapped('name'))"/>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-foreach="order.mrp_production_ids" t-as="mo">
+                                                    <t t-esc="mo.name"/>
+                                                    <t t-if="not mo_last">, </t>
+                                                    <t t-if="(mo_index + 1) % 4 == 0 and not mo_last"><br/></t>
+                                                </t>
+                                            </t>
+                                        </t>
+                                        <t t-else="">-</t>
+                                    </td>
+
+                                </tr>
+                            </t><!-- fin week_orders -->
+                        </tbody>
+
+                    </t><!-- fin sorted_weeks -->
+
+                </table>
+
+                <!-- Pied de page -->
+                <div style="margin-top: 14px; border-top: 1px solid #ccc; padding-top: 4px;">
+                    <table style="width: 100%; font-size: 10px; color: #666;">
+                        <tr>
+                            <td style="width: 40%; text-align: left;">
+                                <t t-if="company and company.name">
+                                    <t t-esc="company.name"/>
+                                </t>
+                                <t t-else="">Généré avec Odoo</t>
+                            </td>
+                            <td style="width: 60%; text-align: right;">
+                                Semaine <t t-esc="edition_dt.strftime('%V')"/> —
+                                <t t-esc="edition_dt.strftime('%d/%m/%Y à %H:%M')"/>
+                            </td>
                         </tr>
-                    </t><!-- fin t-foreach week_orders -->
+                    </table>
+                </div>
 
-                </t><!-- fin t-foreach sorted_weeks -->
+            </div><!-- end .page -->
 
-            </tbody>
-        </table>
+        </t><!-- end web.basic_layout -->
 
-        <!-- Pied de page -->
-        <div style="margin-top: 14px; border-top: 1px solid #ccc; padding-top: 4px;">
-            <table style="width: 100%; font-size: 10px; color: #666;">
-                <tr>
-                    <td style="width: 40%; text-align: left;">
-                        <t t-if="company and company.name">
-                            <t t-esc="company.name"/>
-                        </t>
-                        <t t-else="">Généré avec Odoo</t>
-                    </td>
-                    <td style="width: 60%; text-align: right;">
-                        Semaine <t t-esc="edition_dt.strftime('%V')"/> —
-                        <t t-esc="edition_dt.strftime('%d/%m/%Y à %H:%M')"/>
-                    </td>
-                </tr>
-            </table>
-        </div>
+    </t><!-- end garde -->
 
-    </div><!-- end .page -->
-
-</t>
 </t>
