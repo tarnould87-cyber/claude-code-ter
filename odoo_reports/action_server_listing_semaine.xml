@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ACTION SERVEUR — Listing échéances Cdes (impression directe)
+    =============================================================
+    Cette action serveur déclenche le rapport "Listing commandes par
+    semaine d'échéance" SANS nécessiter de sélection préalable.
+
+    INSTALLATION DANS ODOO (2 méthodes) :
+    ──────────────────────────────────────
+
+    ● MÉTHODE 1 — Via l'interface Odoo (recommandée) :
+      1. Activer le mode développeur
+         (Paramètres → Technique → activer mode développeur)
+      2. Aller dans :
+         Paramètres → Technique → Actions → Actions Serveur
+      3. Créer une nouvelle action avec les paramètres ci-dessous
+      4. Coller le code Python de la section <field name="code">
+
+      Paramètres à renseigner :
+        • Nom          : Imprimer listing échéances Cdes
+        • Modèle       : Bon de commande (sale.order)
+        • Action       : Exécuter du code Python
+        • Lier au modèle : Bon de commande  ← rend l'action visible
+                                               dans le menu Actions
+                                               de la liste des Bons
+                                               de commande
+
+    ● MÉTHODE 2 — Via un module Odoo (si accès serveur) :
+      Copier le bloc <record> ci-dessous dans le fichier
+      data/ d'un module personnalisé et mettre à jour le module.
+
+    ═══════════════════════════════════════════════════════════════
+    CODE PYTHON À COLLER DANS L'ÉDITEUR DE L'ACTION SERVEUR :
+    ═══════════════════════════════════════════════════════════════
+
+    rapport = env['ir.actions.report'].search([
+        ('report_name', '=', 'studio_customization.listing_commandes_par_semaine')
+    ], limit=1)
+
+    declencheur = env['sale.order'].search([
+        ('state', 'not in', ['cancel']),
+        ('invoice_status', '!=', 'invoiced'),
+    ], order='id asc', limit=1)
+
+    if rapport and declencheur:
+        action = rapport.report_action(declencheur)
+
+    ═══════════════════════════════════════════════════════════════
+-->
+
+<odoo>
+    <data noupdate="0">
+
+        <record id="action_server_listing_echéances_cdes" model="ir.actions.server">
+            <field name="name">Imprimer listing échéances Cdes</field>
+            <field name="model_id" ref="sale.model_sale_order"/>
+            <field name="binding_model_id" ref="sale.model_sale_order"/>
+            <field name="binding_type">action</field>
+            <field name="state">code</field>
+            <field name="code">
+rapport = env['ir.actions.report'].search([
+    ('report_name', '=', 'studio_customization.listing_commandes_par_semaine')
+], limit=1)
+
+declencheur = env['sale.order'].search([
+    ('state', 'not in', ['cancel']),
+    ('invoice_status', '!=', 'invoiced'),
+], order='id asc', limit=1)
+
+if rapport and declencheur:
+    action = rapport.report_action(declencheur)
+            </field>
+        </record>
+
+    </data>
+</odoo>
