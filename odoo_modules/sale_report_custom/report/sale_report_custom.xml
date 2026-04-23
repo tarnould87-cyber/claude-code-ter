@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         ACTION DE RAPPORT  (lie le bouton Odoo au template)
+    ============================================================ -->
+    <record id="action_report_saleorder_custom" model="ir.actions.report">
+        <field name="name">Devis / Bon de Commande</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sale_report_custom.report_saleorder_custom_document</field>
+        <field name="report_file">sale_report_custom.report_saleorder_custom_document</field>
+        <field name="print_report_name">
+            (object.state in ('sale','done')) and
+            ('BC-%s' % object.name) or
+            ('Devis-%s' % object.name)
+        </field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+        <field name="groups_id" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
+    </record>
+
+    <!-- ============================================================
+         TEMPLATE PRINCIPAL  (un document = une commande)
+    ============================================================ -->
+    <template id="report_saleorder_custom_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="sale_report_custom.report_saleorder_custom_document_body"
+                   t-lang="doc.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- ============================================================
+         CORPS DU DOCUMENT
+    ============================================================ -->
+    <template id="report_saleorder_custom_document_body">
+        <t t-call="web.external_layout">
+
+            <!-- ── Bloc titre injecté dans information_block ── -->
+            <t t-set="information_block">
+                <div style="font-family: Verdana, Geneva, sans-serif; font-size: 8.5pt; min-width: 170px;">
+                    <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                                font-size: 7pt; color: #949494; text-transform: uppercase;
+                                letter-spacing: 2px; font-weight: bold; margin-bottom: 4px;">
+                        <t t-if="doc.state in ('sale', 'done')">Bon de Commande</t>
+                        <t t-else="">Devis</t>
+                    </div>
+                    <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                                font-size: 17pt; font-weight: bold; color: #253758;
+                                letter-spacing: 0.5px;">
+                        <span t-field="doc.name"/>
+                    </div>
+                </div>
+            </t>
+
+            <!-- ── Page principale ── -->
+            <div class="page">
+
+                <!-- CSS global du rapport -->
+                <style type="text/css">
+                    .page {
+                        font-family: Verdana, Geneva, sans-serif !important;
+                        font-size: 8.5pt;
+                        color: #252525;
+                    }
+                    /* Masque les blocs d'info Odoo par défaut */
+                    .page #informations,
+                    .page .o_dateinfo,
+                    .page div.row.mt32.mb32 { display: none !important; }
+
+                    /* ── En-têtes de tableau ── */
+                    .page table thead th,
+                    .page table thead td {
+                        background-color: #253758 !important;
+                        color: #F0EDE7 !important;
+                        font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif !important;
+                        text-transform: uppercase !important;
+                        font-size: 7pt !important;
+                        letter-spacing: 1px !important;
+                        padding: 9px 10px !important;
+                        border: none !important;
+                    }
+                    /* ── Lignes alternées ── */
+                    .page table tbody tr:nth-child(even) { background-color: #F5F2EC; }
+                    .page table tbody tr:nth-child(odd)  { background-color: #FFFFFF; }
+                    .page table tbody td {
+                        border-bottom: 1px solid #DDD9D0 !important;
+                        padding: 7px 10px !important;
+                        vertical-align: top;
+                    }
+                    /* ── Sous-total ── */
+                    .page .o_subtotal td,
+                    .page tr.o_subtotal td {
+                        background-color: #F5F2EC !important;
+                        font-weight: bold;
+                        color: #252525 !important;
+                    }
+                    /* ── Total général ── */
+                    .page .o_total td,
+                    .page tr.o_total td {
+                        background-color: #253758 !important;
+                        color: #F0EDE7 !important;
+                        font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif !important;
+                        font-weight: bold !important;
+                        font-size: 11pt !important;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        border: none !important;
+                        padding: 10px 12px !important;
+                    }
+                    /* ── Sections de texte (notes, termes) ── */
+                    .page .o_note_section td { font-style: italic; color: #555; }
+                </style>
+
+                <!-- Filet de séparation sous l'en-tête -->
+                <div style="border-top: 2px solid #253758; margin: 6px 0 18px 0;"></div>
+
+                <!-- ══════════════════════════════════════════════
+                     BLOC D'INFORMATIONS DU DOCUMENT
+                ══════════════════════════════════════════════ -->
+                <div style="background-color: #F5F2EC; border: 1px solid #C8C3B5;
+                            border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;
+                            font-family: Verdana, Geneva, sans-serif; font-size: 8.5pt;
+                            color: #252525;">
+
+                    <!-- Ligne 1 : Date · Validité · Vendeur -->
+                    <table width="100%" style="border-collapse: collapse;">
+                        <tr>
+                            <td style="vertical-align: top; padding-right: 20px; width: 33%;">
+                                <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                                            font-size: 6.5pt; color: #949494; text-transform: uppercase;
+                                            font-weight: bold; letter-spacing: 1px; margin-bottom: 3px;">
+                                    Date du devis
+                                </div>
+                                <div style="color: #252525;">
+                                    <span t-field="doc.date_order" t-options='{"widget": "date"}'/>
+                                </div>
+                            </td>
+                            <t t-if="doc.validity_date">
+                                <td style="vertical-align: top; padding: 0 20px;
+                                           border-left: 1px solid #C8C3B5; width: 33%;">
+                                    <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                                                font-size: 6.5pt; color: #949494; text-transform: uppercase;
+                                                font-weight: bold; letter-spacing: 1px; margin-bottom: 3px;">
+                                        Validité
+                                    </div>
+                                    <div style="color: #252525;">
+                                        <span t-field="doc.validity_date"/>
+                                    </div>
+                                </td>
+                            </t>
+                            <t t-if="doc.user_id">
+                                <td style="vertical-align: top; padding: 0 0 0 20px;
+                                           border-left: 1px solid #C8C3B5; width: 33%;">
+                                    <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                                                font-size: 6.5pt; color: #949494; text-transform: uppercase;
+                                                font-weight: bold; letter-spacing: 1px; margin-bottom: 3px;">
+                                        Vendeur
+                                    </div>
+                                    <div style="color: #253758; font-weight: bold;">
+                                        <span t-field="doc.user_id"/>
+                                    </div>
+                                </td>
+                            </t>
+                        </tr>
+                    </table>
+
+                    <div style="border-top: 1px solid #C8C3B5; margin: 10px 0;"></div>
+
+                    <!-- Ligne 2 : Réf. client · Délai de livraison · Incoterm -->
+                    <table width="100%" style="border-collapse: collapse;">
+                        <tr>
+                            <t t-if="doc.client_order_ref">
+                                <td style="vertical-align: top; padding-right: 20px; width: 33%;">
+                                    <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                                                font-size: 6.5pt; color: #949494; text-transform: uppercase;
+                                                font-weight: bold; letter-spacing: 1px; margin-bottom: 3px;">
+                                        Votre référence
+                                    </div>
+                                    <div style="color: #252525;">
+                                        <span t-field="doc.client_order_ref"/>
+                                    </div>
+                                </td>
+                            </t>
+                            <t t-if="doc.x_studio_delai_de_livraison">
+                                <td style="vertical-align: top; padding: 0 20px;
+                                           border-left: 1px solid #C8C3B5; width: 33%;">
+                                    <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                                                font-size: 6.5pt; color: #949494; text-transform: uppercase;
+                                                font-weight: bold; letter-spacing: 1px; margin-bottom: 3px;">
+                                        Délai de livraison
+                                    </div>
+                                    <div style="color: #252525;">
+                                        <span t-field="doc.x_studio_delai_de_livraison"/>
+                                    </div>
+                                </td>
+                            </t>
+                            <t t-if="doc.incoterm">
+                                <td style="vertical-align: top; padding: 0 0 0 20px;
+                                           border-left: 1px solid #C8C3B5; width: 33%;">
+                                    <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                                                font-size: 6.5pt; color: #949494; text-transform: uppercase;
+                                                font-weight: bold; letter-spacing: 1px; margin-bottom: 3px;">
+                                        Incoterm
+                                    </div>
+                                    <div style="color: #252525;">
+                                        <strong style="color: #253758;">
+                                            <span t-field="doc.incoterm.code"/>
+                                        </strong>
+                                        <span style="color: #949494;"> – </span>
+                                        <span t-field="doc.incoterm.name"/>
+                                    </div>
+                                </td>
+                            </t>
+                        </tr>
+                    </table>
+
+                    <!-- Ligne 3 : Conditions de paiement (pleine largeur si présent) -->
+                    <t t-if="doc.payment_term_id">
+                        <div style="border-top: 1px solid #C8C3B5; margin: 10px 0;"></div>
+                        <table width="100%" style="border-collapse: collapse;">
+                            <tr>
+                                <td style="vertical-align: top; padding-right: 20px;">
+                                    <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                                                font-size: 6.5pt; color: #949494; text-transform: uppercase;
+                                                font-weight: bold; letter-spacing: 1px; margin-bottom: 3px;">
+                                        Conditions de paiement
+                                    </div>
+                                    <div style="color: #252525;">
+                                        <span t-field="doc.payment_term_id"/>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </t>
+
+                </div><!-- /bloc informations -->
+
+                <!-- ══════════════════════════════════════════════
+                     ADRESSE DE LIVRAISON (si différente)
+                ══════════════════════════════════════════════ -->
+                <t t-if="doc.partner_shipping_id != doc.partner_invoice_id">
+                    <div style="margin-bottom: 14px; font-size: 8.5pt;">
+                        <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                                    font-size: 6.5pt; color: #949494; text-transform: uppercase;
+                                    font-weight: bold; letter-spacing: 1px; margin-bottom: 4px;">
+                            Adresse de livraison
+                        </div>
+                        <div>
+                            <span t-field="doc.partner_shipping_id"
+                                  t-options='{"widget": "contact",
+                                              "fields": ["name","street","city","zip","country"],
+                                              "no_marker": true}'/>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- ══════════════════════════════════════════════
+                     NOTE D'INTRODUCTION
+                ══════════════════════════════════════════════ -->
+                <t t-if="doc.note and doc.note != '&lt;p&gt;&lt;br&gt;&lt;/p&gt;'">
+                    <div style="margin-bottom: 12px; font-size: 8.5pt; color: #444;">
+                        <span t-field="doc.note"/>
+                    </div>
+                </t>
+
+                <!-- ══════════════════════════════════════════════
+                     TABLEAU DES LIGNES DE COMMANDE
+                ══════════════════════════════════════════════ -->
+                <table class="table o_main_table table-condensed"
+                       style="width: 100%; border-collapse: collapse;">
+
+                    <!-- En-têtes -->
+                    <thead>
+                        <tr>
+                            <th style="width: 45%; text-align: left;">Description</th>
+                            <th style="width: 10%; text-align: center;">Qté</th>
+                            <th style="width: 12%; text-align: right;">Prix unit.</th>
+                            <t t-if="any(line.discount for line in doc.order_line if not line.display_type)">
+                                <th style="width: 8%; text-align: right;">Remise</th>
+                            </t>
+                            <th style="width: 10%; text-align: right;">Taxes</th>
+                            <th style="width: 15%; text-align: right;">Sous-total</th>
+                        </tr>
+                    </thead>
+
+                    <!-- Corps -->
+                    <tbody>
+                        <t t-foreach="doc.order_line" t-as="line">
+
+                            <!-- Ligne de section -->
+                            <t t-if="line.display_type == 'line_section'">
+                                <tr>
+                                    <td colspan="6"
+                                        style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                                               font-weight: bold; font-size: 8pt; color: #253758;
+                                               background-color: #E8E4DC !important;
+                                               padding: 8px 10px !important;
+                                               border-top: 2px solid #C8C3B5 !important;
+                                               border-bottom: 1px solid #C8C3B5 !important;">
+                                        <span t-field="line.name"/>
+                                    </td>
+                                </tr>
+                            </t>
+
+                            <!-- Ligne de note -->
+                            <t t-elif="line.display_type == 'line_note'">
+                                <tr class="o_note_section">
+                                    <td colspan="6"
+                                        style="font-style: italic; color: #666;
+                                               padding: 5px 10px !important;
+                                               background-color: #FAFAF8 !important;">
+                                        <span t-field="line.name"/>
+                                    </td>
+                                </tr>
+                            </t>
+
+                            <!-- Ligne produit normale -->
+                            <t t-else="">
+                                <tr>
+                                    <td>
+                                        <span t-field="line.name"/>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span t-field="line.product_uom_qty"/>
+                                        <span style="color: #949494; margin-left: 2px;">
+                                            <t t-if="line.product_uom">
+                                                <span t-field="line.product_uom" t-options='{"widget": "many2one_avatar"}'/>
+                                            </t>
+                                        </span>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span t-field="line.price_unit"/>
+                                    </td>
+                                    <t t-if="any(l.discount for l in doc.order_line if not l.display_type)">
+                                        <td style="text-align: right;">
+                                            <t t-if="line.discount">
+                                                <span t-field="line.discount"/>&#160;%
+                                            </t>
+                                        </td>
+                                    </t>
+                                    <td style="text-align: right; color: #555; font-size: 7.5pt;">
+                                        <span t-esc="', '.join(t.name for t in line.tax_id)"/>
+                                    </td>
+                                    <td style="text-align: right; font-weight: bold;">
+                                        <span t-field="line.price_subtotal"
+                                              t-options='{"widget": "monetary",
+                                                          "display_currency": doc.currency_id}'/>
+                                    </td>
+                                </tr>
+                            </t>
+
+                        </t>
+                    </tbody>
+
+                </table><!-- /tableau lignes -->
+
+                <!-- ══════════════════════════════════════════════
+                     BLOC TOTAUX
+                ══════════════════════════════════════════════ -->
+                <table width="100%" style="border-collapse: collapse; margin-top: 4px;">
+
+                    <!-- Sous-total HT -->
+                    <tr class="o_subtotal">
+                        <td style="width: 70%;"></td>
+                        <td style="text-align: right; padding-right: 8px; font-weight: bold;">
+                            Sous-total HT
+                        </td>
+                        <td style="text-align: right; min-width: 110px;">
+                            <span t-field="doc.amount_untaxed"
+                                  t-options='{"widget": "monetary",
+                                              "display_currency": doc.currency_id}'/>
+                        </td>
+                    </tr>
+
+                    <!-- Taxes (détail par groupe) -->
+                    <t t-foreach="doc.amount_by_group" t-as="amount_by_group">
+                        <tr>
+                            <td style="width: 70%;"></td>
+                            <td style="text-align: right; padding-right: 8px; color: #555;">
+                                <span t-esc="amount_by_group[0]"/>
+                            </td>
+                            <td style="text-align: right; min-width: 110px; color: #555;">
+                                <span t-esc="doc.currency_id.symbol"/>&#160;<span t-esc="'%.2f' % amount_by_group[1]"/>
+                            </td>
+                        </tr>
+                    </t>
+
+                    <!-- Total TTC -->
+                    <tr class="o_total">
+                        <td style="width: 70%;"></td>
+                        <td style="text-align: right; padding-right: 8px;">
+                            Total TTC
+                        </td>
+                        <td style="text-align: right; min-width: 110px;">
+                            <span t-field="doc.amount_total"
+                                  t-options='{"widget": "monetary",
+                                              "display_currency": doc.currency_id}'/>
+                        </td>
+                    </tr>
+
+                </table><!-- /totaux -->
+
+                <!-- ══════════════════════════════════════════════
+                     TERMES ET CONDITIONS
+                ══════════════════════════════════════════════ -->
+                <t t-if="doc.terms_and_conditions">
+                    <div style="margin-top: 20px; border-top: 1px solid #DDD9D0; padding-top: 10px;
+                                font-size: 7.5pt; color: #777;">
+                        <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif;
+                                    font-size: 6.5pt; color: #949494; text-transform: uppercase;
+                                    font-weight: bold; letter-spacing: 1px; margin-bottom: 4px;">
+                            Termes et conditions
+                        </div>
+                        <span t-field="doc.terms_and_conditions"/>
+                    </div>
+                </t>
+
+            </div><!-- /page -->
+        </t><!-- /external_layout -->
+    </template>
+
+</odoo>
