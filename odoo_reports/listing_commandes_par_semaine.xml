@@ -4,6 +4,7 @@
     <!-- ── Variables globales ── -->
     <t t-set="edition_dt" t-value="datetime.datetime.now()"/>
     <t t-set="today_date"  t-value="edition_dt.date()"/>
+    <t t-set="current_week_key" t-value="edition_dt.isocalendar()[0] * 100 + edition_dt.isocalendar()[1]"/>
 
     <!-- ── Données : commandes confirmées/verrouillées, non facturées ──
          Exclus : annulées, entièrement facturées, "opportunité incitative"
@@ -95,10 +96,10 @@
                         <t t-set="week_num"  t-value="week_key % 100"/>
                         <t t-set="week_year" t-value="str(week_key // 100)[2:]"/>
 
-                        <!-- Couleurs alternées : pair = bleu, impair = vert -->
-                        <t t-set="_even"   t-value="week_key_index % 2 == 0"/>
-                        <t t-set="_hdr_bg" t-value="'background-color:#c8dff0;color:#1a3a52;' if _even else 'background-color:#c3e6d5;color:#0e4028;'"/>
-                        <t t-set="_row_bg" t-value="'background-color:#eef5fb;' if _even else 'background-color:#edf8f3;'"/>
+                        <!-- Semaine en cours = bleu ; autres = gris clair / blanc alternés -->
+                        <t t-set="_is_current" t-value="week_key == current_week_key"/>
+                        <t t-set="_hdr_bg" t-value="'background-color:#1a5276;color:white;' if _is_current else ('background-color:#d8d8d8;color:#333;' if week_key_index % 2 == 0 else 'background-color:#e8e8e8;color:#333;')"/>
+                        <t t-set="_row_bg" t-value="'background-color:#eef5fb;' if _is_current else ('background-color:#f4f4f4;' if week_key_index % 2 == 0 else '')"/>
 
                         <!-- Commandes de cette semaine -->
                         <t t-set="week_orders" t-value="filtered_docs.filtered(lambda o:
