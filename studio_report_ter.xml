@@ -112,31 +112,5 @@
     </xpath>
   </data>
 
-  <data>
-    <xpath position="inside"
-           expr="/t[@t-name='sale.report_saleorder_document_copy_10']//t[@t-call='web.external_layout']/div/div[9]/div"
-           meta-class="oe_structure">
-      <t t-if="doc.state not in ('sale', 'done', 'cancel')">
-        <div style="margin-top: 30px; page-break-inside: avoid; font-family: Verdana, Geneva, sans-serif;">
-          <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 7pt; color: #949494; text-transform: uppercase; letter-spacing: 1.5px; font-weight: bold; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #DDD9D0;">Bon pour accord - <span style="color: #253758; font-size: 8pt;"><span t-field="doc.name"/></span></div>
-          <table width="100%" style="border-collapse: collapse;">
-            <tr>
-              <td width="46%" style="vertical-align: top;">
-                <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 6.5pt; color: #949494; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 5px;">Cachet et signature du client</div>
-                <div style="border: 1px solid #C8C3B5; border-top: 2px solid #253758; height: 72px; background-color: #F5F2EC; border-radius: 0 0 4px 4px;"></div>
-                <div style="font-size: 7pt; color: #949494; font-style: italic; margin-top: 5px;">Preceder la signature de la mention Lu et approuve</div>
-              </td>
-              <td width="8%"></td>
-              <td width="46%" style="vertical-align: top;">
-                <div style="font-family: 'Century Gothic', Trebuchet MS, Arial, sans-serif; font-size: 6.5pt; color: #949494; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 5px;">Date d acceptation</div>
-                <div style="border: 1px solid #C8C3B5; border-top: 2px solid #253758; height: 72px; background-color: #F5F2EC; border-radius: 0 0 4px 4px;"></div>
-                <div style="font-size: 7pt; color: #949494; font-style: italic; margin-top: 5px;">Date et lieu de signature</div>
-              </td>
-            </tr>
-          </table>
-        </div>
-      </t>
-    </xpath>
-  </data>
 
 </data>
