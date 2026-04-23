@@ -5,10 +5,13 @@
     <t t-set="edition_dt" t-value="datetime.datetime.now()"/>
     <t t-set="today_date"  t-value="edition_dt.date()"/>
 
-    <!-- ── Données : commandes confirmées/verrouillées, non entièrement facturées ── -->
+    <!-- ── Données : commandes confirmées/verrouillées, non facturées ──
+         Exclus : annulées, entièrement facturées, "opportunité incitative"
+         (invoice_status 'upselling' = considéré comme entièrement facturé)
+    -->
     <t t-set="filtered_docs" t-value="env['sale.order'].search([
         ('state', 'in', ['sale', 'done']),
-        ('invoice_status', '!=', 'invoiced'),
+        ('invoice_status', 'not in', ['invoiced', 'upselling']),
     ], order='name')"/>
 
             <!-- ── Phase 1 : collecte des semaines uniques ──
@@ -78,10 +81,10 @@
                         <tr style="background-color: #eff2f5; color: #222;">
                             <th style="width: 5%;  text-align: center;">Semaine</th>
                             <th style="width: 2%;  text-align: center;">#</th>
-                            <th style="width: 8%;">N° Cde</th>
-                            <th style="width: 6%;">Date</th>
-                            <th style="width: 15%;">Société</th>
-                            <th style="width: 24%;">Réf. client</th>
+                            <th style="width: 7%;">N° Cde</th>
+                            <th style="width: 5%;">Date</th>
+                            <th style="width: 12%;">Société</th>
+                            <th style="width: 29%;">Réf. client</th>
                             <th style="width: 8%;">Échéance</th>
                             <th style="width: 32%;">N° OF</th>
                         </tr>
