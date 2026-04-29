@@ -47,7 +47,7 @@
     <data noupdate="0">
 
         <record id="action_report_fiche_suivi_commandes" model="ir.actions.report">
-            <field name="name">Fiche suivi commandes</field>
+            <field name="name">Listing préparation facturation</field>
             <field name="model">sale.order</field>
             <field name="report_type">qweb-pdf</field>
             <field name="report_name">studio_customization.fiche_suivi_commandes</field>
