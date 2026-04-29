@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ACTION AUTOMATISÉE — Propagation date de livraison vers date_deadline des OF
+    =============================================================================
+    Déclencheur : modification du champ "Date de livraison" (commitment_date)
+                  sur une commande client (sale.order)
+    Effet       : met à jour date_deadline sur tous les OF actifs liés
+                  (les OF en état 'done' ou 'cancel' ne sont pas modifiés)
+
+    INSTALLATION DANS ODOO :
+    ────────────────────────
+    1. Activer le mode développeur
+       (Paramètres → Activer le mode développeur)
+
+    2. Aller dans :
+       Paramètres → Technique → Automatisation → Actions Automatisées
+
+    3. Créer une nouvelle action avec ces paramètres :
+
+       • Nom            : Propager date livraison → date_deadline OF
+       • Modèle         : Bon de commande (sale.order)
+       • Déclencheur    : Basé sur une modification
+       • Champ(s) surveillé(s) : Date de livraison (commitment_date)
+       • Avant filtre   : [("commitment_date", "!=", False)]
+       • Action         : Exécuter du code Python
+
+    4. Coller le code Python ci-dessous dans l'éditeur, puis Sauvegarder.
+
+    ═══════════════════════════════════════════════════════════════════════
+    CODE PYTHON À COLLER :
+    ═══════════════════════════════════════════════════════════════════════
+
+    for order in records:
+        if order.commitment_date:
+            ofs_actifs = order.mrp_production_ids.filtered(
+                lambda mo: mo.state not in ('done', 'cancel')
+            )
+            if ofs_actifs:
+                ofs_actifs.write({'date_deadline': order.commitment_date})
+
+    ═══════════════════════════════════════════════════════════════════════
+
+    COMPORTEMENT :
+    ──────────────
+    - Modification de commitment_date sur S00042
+      → date_deadline mis à jour sur tous les OF de S00042
+         dont l'état N'EST PAS 'done' (fait) ni 'cancel' (annulé)
+    - Les OF terminés ou annulés sont intentionnellement ignorés
+    - Si commitment_date est vidé, aucune action (condition "!= False")
+-->
+
+<odoo>
+    <data noupdate="0">
+
+        <record id="automation_propagate_commitment_date_to_of"
+                model="base.automation">
+
+            <field name="name">Propager date livraison → date_deadline OF</field>
+            <field name="model_id" ref="sale.model_sale_order"/>
+            <field name="trigger">on_write</field>
+
+            <!-- Surveiller uniquement le champ commitment_date -->
+            <field name="trigger_field_ids"
+                   eval="[(4, ref('sale.field_sale_order__commitment_date'))]"/>
+
+            <!-- Ne déclencher que si commitment_date est renseigné -->
+            <field name="filter_pre_domain">[("commitment_date", "!=", False)]</field>
+
+            <field name="state">code</field>
+            <field name="code">
+for order in records:
+    if order.commitment_date:
+        ofs_actifs = order.mrp_production_ids.filtered(
+            lambda mo: mo.state not in ('done', 'cancel')
+        )
+        if ofs_actifs:
+            ofs_actifs.write({'date_deadline': order.commitment_date})
+            </field>
+
+        </record>
+
+    </data>
+</odoo>
