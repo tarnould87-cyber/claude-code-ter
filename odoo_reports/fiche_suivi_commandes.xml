@@ -74,7 +74,7 @@
                 <t t-foreach="companies" t-as="cp">
 
                     <!-- ── Ligne de regroupement client ── -->
-                    <tr style="background-color: #1a5276; color: white;">
+                    <tr style="background-color: #5b9bd5; color: white;">
                         <td colspan="10" style="padding: 4px 6px; font-weight: bold; font-size: 11px;">
                             <t t-esc="cp.name"/>
                         </td>
