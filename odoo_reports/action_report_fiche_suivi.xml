@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    RAPPORT — Fiche suivi commandes (impression depuis liste Vente > Commandes)
+    ===========================================================================
+    Ce rapport s'affiche dans le menu Imprimer lors de la sélection d'une
+    ou plusieurs commandes depuis Vente → Commandes.
+
+    INSTALLATION DANS ODOO (mode développeur requis) :
+    ──────────────────────────────────────────────────
+
+    ● ÉTAPE 1 — Charger le template QWeb (fiche_suivi_commandes.xml)
+      1. Activer le mode développeur
+         (Paramètres → Technique → activer mode développeur)
+      2. Aller dans :
+         Paramètres → Technique → Interface utilisateur → Vues
+      3. Créer une nouvelle vue avec les paramètres :
+           • Nom           : studio_customization.fiche_suivi_commandes
+           • Type de vue   : QWeb
+           • Clé technique : studio_customization.fiche_suivi_commandes
+      4. Coller le contenu complet de fiche_suivi_commandes.xml
+         dans le champ "Arch"
+
+    ─────────────────────────────────────────────────────────────────
+
+    ● ÉTAPE 2 — Créer l'action rapport
+      1. Aller dans :
+         Paramètres → Technique → Actions → Rapports
+      2. Créer un nouveau rapport avec :
+           • Nom                : Fiche suivi commandes
+           • Modèle             : Bon de commande (sale.order)
+           • Type de rapport    : PDF
+           • Nom du template    : studio_customization.fiche_suivi_commandes
+           • Nom du fichier     : Suivi_commandes
+           • Ajouter au menu   : Imprimer (cocher)
+           • Groupes autorisés : (laisser vide = tous)
+
+    ─────────────────────────────────────────────────────────────────
+
+    ● MÉTHODE ALTERNATIVE — Via un module Odoo (si accès serveur) :
+      Copier le bloc <record> ci-dessous dans le fichier data/ d'un
+      module personnalisé et mettre à jour le module.
+
+    ═══════════════════════════════════════════════════════════════
+-->
+
+<odoo>
+    <data noupdate="0">
+
+        <record id="action_report_fiche_suivi_commandes" model="ir.actions.report">
+            <field name="name">Fiche suivi commandes</field>
+            <field name="model">sale.order</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">studio_customization.fiche_suivi_commandes</field>
+            <field name="report_file">studio_customization.fiche_suivi_commandes</field>
+            <field name="print_report_name">'Suivi_commandes_%s' % (object.name)</field>
+            <field name="binding_model_id" ref="sale.model_sale_order"/>
+            <field name="binding_type">report</field>
+        </record>
+
+    </data>
+</odoo>

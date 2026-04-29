@@ -1,0 +1,241 @@
+<t t-name="studio_customization.fiche_suivi_commandes">
+<t t-call="web.basic_layout">
+
+    <!-- ── Variables globales ── -->
+    <t t-set="edition_dt" t-value="context_timestamp(datetime.datetime.now())"/>
+    <t t-set="today_date"  t-value="edition_dt.date()"/>
+
+    <div class="page">
+
+        <!-- En-tête -->
+        <div style="margin-bottom: 12px;">
+            <h2 style="margin: 0; font-size: 18px;">Suivi des commandes</h2>
+            <div style="font-size: 11px; color: #555; margin-top: 3px;">
+                Édité le :
+                <strong>
+                    <t t-esc="edition_dt.strftime('%d/%m/%Y')"/>
+                    à
+                    <t t-esc="edition_dt.strftime('%H:%M')"/>
+                </strong>
+                &#160;|&#160;
+                <t t-esc="len(docs)"/> commande(s) sélectionnée(s)
+            </div>
+        </div>
+
+        <!-- Légende -->
+        <div style="font-size: 10px; margin-bottom: 8px; padding: 3px 8px; background: #f8f9fa; border: 1px solid #dee2e6; display: inline-block; border-radius: 3px;">
+            Délai :
+            <span style="color: red; font-weight: bold;">■</span> Dépassé &#160;
+            <span style="color: darkorange; font-weight: bold;">■</span> Expire dans ≤ 2 jours &#160;
+            <span style="color: black;">■</span> OK &#160;
+            <span style="color: #2980b9;">■</span> Date de confirmation (sans échéance)
+        </div>
+
+        <!-- Tableau principal -->
+        <table class="table table-sm table-bordered"
+               style="width: 100%; font-size: 10px; border-collapse: collapse; margin-top: 4px;">
+
+            <thead>
+                <tr style="background-color: #1a5276; color: white;">
+                    <th style="width: 7%;  text-align: center; padding: 4px;">N° Cde</th>
+                    <th style="width: 5%;  text-align: center; padding: 4px;">Date</th>
+                    <th style="width: 11%; padding: 4px;">Société</th>
+                    <th style="width: 14%; padding: 4px;">Réf. client</th>
+                    <th style="width: 7%;  text-align: center; padding: 4px;">Échéance</th>
+                    <th style="width: 13%; padding: 4px;">N° OF</th>
+                    <th style="width: 9%;  text-align: center; padding: 4px;">Livraison</th>
+                    <th style="width: 9%;  text-align: center; padding: 4px;">Approbations</th>
+                    <th style="width: 25%; padding: 4px;">État OF</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <t t-foreach="docs" t-as="order">
+
+                    <!-- ── Calcul échéance ── -->
+                    <t t-set="_mo_dl" t-value="order.mrp_production_ids.filtered(lambda mo: mo.date_deadline and mo.state not in ('done','cancel'))"/>
+                    <t t-if="_mo_dl">
+                        <t t-set="_ech_date" t-value="_mo_dl[0].date_deadline.date()"/>
+                        <t t-set="_ech_str"  t-value="_mo_dl[0].date_deadline.strftime('%d/%m/%y')"/>
+                    </t>
+                    <t t-elif="order.commitment_date">
+                        <t t-set="_ech_date" t-value="order.commitment_date.date()"/>
+                        <t t-set="_ech_str"  t-value="order.commitment_date.strftime('%d/%m/%y')"/>
+                    </t>
+                    <t t-elif="order.date_order">
+                        <t t-set="_ech_date" t-value="False"/>
+                        <t t-set="_ech_str"  t-value="order.date_order.strftime('%d/%m/%y')"/>
+                    </t>
+                    <t t-else="">
+                        <t t-set="_ech_date" t-value="False"/>
+                        <t t-set="_ech_str"  t-value="'-'"/>
+                    </t>
+
+                    <!-- Couleur échéance -->
+                    <t t-if="_ech_date">
+                        <t t-set="_diff"    t-value="(_ech_date - today_date).days"/>
+                        <t t-set="_ech_col" t-value="'color:red;font-weight:bold;' if _diff &lt; 0 else ('color:darkorange;font-weight:bold;' if _diff &lt;= 2 else 'color:black;')"/>
+                    </t>
+                    <t t-else="">
+                        <t t-set="_ech_col" t-value="'color:#2980b9;'"/>
+                    </t>
+
+                    <!-- ── Calcul état livraison ── -->
+                    <t t-set="_picks"      t-value="order.picking_ids.filtered(lambda p: p.state != 'cancel')"/>
+                    <t t-set="_picks_done" t-value="_picks.filtered(lambda p: p.state == 'done')"/>
+                    <t t-if="not _picks">
+                        <t t-set="_liv_label" t-value="'-'"/>
+                        <t t-set="_liv_col"   t-value="'color:#aaa;'"/>
+                    </t>
+                    <t t-elif="_picks_done and len(_picks_done) == len(_picks)">
+                        <t t-set="_liv_label" t-value="'Livré'"/>
+                        <t t-set="_liv_col"   t-value="'color:green;font-weight:bold;'"/>
+                    </t>
+                    <t t-elif="_picks_done">
+                        <t t-set="_liv_label" t-value="'Partiel'"/>
+                        <t t-set="_liv_col"   t-value="'color:darkorange;font-weight:bold;'"/>
+                    </t>
+                    <t t-elif="_picks.filtered(lambda p: p.state == 'assigned')">
+                        <t t-set="_liv_label" t-value="'Prêt'"/>
+                        <t t-set="_liv_col"   t-value="'color:#1a5276;font-weight:bold;'"/>
+                    </t>
+                    <t t-else="">
+                        <t t-set="_liv_label" t-value="'En attente'"/>
+                        <t t-set="_liv_col"   t-value="'color:#555;'"/>
+                    </t>
+
+                    <!-- ── Couleur approbations ── -->
+                    <t t-set="_appro" t-value="order.x_studio_approbations"/>
+                    <t t-if="_appro == 'Validée'">
+                        <t t-set="_appro_col" t-value="'color:green;font-weight:bold;'"/>
+                    </t>
+                    <t t-elif="_appro == 'Valo terminée'">
+                        <t t-set="_appro_col" t-value="'color:darkorange;font-weight:bold;'"/>
+                    </t>
+                    <t t-else="">
+                        <t t-set="_appro_col" t-value="'color:#555;'"/>
+                    </t>
+
+                    <!-- ── Ligne du tableau ── -->
+                    <tr style="vertical-align: top;">
+
+                        <!-- N° Cde -->
+                        <td style="padding: 3px 4px;">
+                            <strong><t t-esc="order.name"/></strong>
+                        </td>
+
+                        <!-- Date commande -->
+                        <td style="padding: 3px 4px; text-align: center;">
+                            <t t-if="order.date_order">
+                                <t t-esc="order.date_order.strftime('%d/%m/%y')"/>
+                            </t>
+                            <t t-else="">-</t>
+                        </td>
+
+                        <!-- Société -->
+                        <td style="padding: 3px 4px;">
+                            <t t-if="order.partner_id and order.partner_id.commercial_company_name">
+                                <t t-esc="order.partner_id.commercial_company_name"/>
+                            </t>
+                            <t t-elif="order.partner_id">
+                                <t t-esc="order.partner_id.name"/>
+                            </t>
+                            <t t-else="">-</t>
+                        </td>
+
+                        <!-- Réf. client -->
+                        <td style="padding: 3px 4px;">
+                            <t t-esc="order.client_order_ref or '-'"/>
+                        </td>
+
+                        <!-- Échéance -->
+                        <td style="padding: 3px 4px; text-align: center;">
+                            <span t-att-style="_ech_col">
+                                <t t-esc="_ech_str"/>
+                            </span>
+                        </td>
+
+                        <!-- N° OF -->
+                        <td style="padding: 3px 4px;">
+                            <t t-if="order.mrp_production_ids">
+                                <t t-foreach="order.mrp_production_ids" t-as="mo">
+                                    <t t-esc="mo.name"/>
+                                    <t t-if="not mo_last"><br/></t>
+                                </t>
+                            </t>
+                            <t t-else="">-</t>
+                        </td>
+
+                        <!-- État livraison -->
+                        <td style="padding: 3px 4px; text-align: center;">
+                            <span t-att-style="_liv_col">
+                                <t t-esc="_liv_label"/>
+                            </span>
+                        </td>
+
+                        <!-- Approbations -->
+                        <td style="padding: 3px 4px; text-align: center;">
+                            <span t-att-style="_appro_col">
+                                <t t-esc="_appro or 'En cours'"/>
+                            </span>
+                        </td>
+
+                        <!-- État OF -->
+                        <td style="padding: 3px 4px;">
+                            <t t-if="order.mrp_production_ids">
+                                <t t-foreach="order.mrp_production_ids" t-as="mo">
+                                    <t t-if="mo.state == 'draft'">
+                                        <span style="color:#aaa;">Brouillon</span>
+                                    </t>
+                                    <t t-elif="mo.state == 'confirmed'">
+                                        <span style="color:#1a5276;font-weight:bold;">Confirmé</span>
+                                    </t>
+                                    <t t-elif="mo.state == 'progress'">
+                                        <span style="color:darkorange;font-weight:bold;">En cours</span>
+                                    </t>
+                                    <t t-elif="mo.state == 'to_close'">
+                                        <span style="color:purple;font-weight:bold;">À clôturer</span>
+                                    </t>
+                                    <t t-elif="mo.state == 'done'">
+                                        <span style="color:green;font-weight:bold;">Terminé</span>
+                                    </t>
+                                    <t t-elif="mo.state == 'cancel'">
+                                        <span style="color:red;">Annulé</span>
+                                    </t>
+                                    <t t-else="">
+                                        <span style="color:#555;"><t t-esc="mo.state"/></span>
+                                    </t>
+                                    <t t-if="not mo_last"><br/></t>
+                                </t>
+                            </t>
+                            <t t-else="">-</t>
+                        </td>
+
+                    </tr>
+
+                </t><!-- fin docs -->
+            </tbody>
+
+        </table>
+
+        <!-- Pied de page -->
+        <div style="margin-top: 14px; border-top: 1px solid #ccc; padding-top: 4px;">
+            <table style="width: 100%; font-size: 10px; color: #666;">
+                <tr>
+                    <td style="width: 40%; text-align: left;">
+                        <t t-if="company and company.name">
+                            <t t-esc="company.name"/>
+                        </t>
+                        <t t-else="">Généré avec Odoo</t>
+                    </td>
+                    <td style="width: 60%; text-align: right;">
+                        <t t-esc="edition_dt.strftime('%d/%m/%Y à %H:%M')"/>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </div><!-- end .page -->
+
+</t><!-- end web.basic_layout -->
+</t>
