@@ -15,10 +15,7 @@
         ('state', 'in', ['sale', 'done']),
         ('invoice_status', 'not in', ['invoiced', 'upselling']),
     ], order='name').filtered(
-        lambda o: (
-            not o.mrp_production_ids
-            or bool(o.mrp_production_ids.filtered(lambda mo: mo.state not in ('done', 'cancel')))
-        ) and getattr(o, 'x_studio_approbations', '') != 'Validée'
+        lambda o: (not o.mrp_production_ids or bool(o.mrp_production_ids.filtered(lambda mo: mo.state not in ('done', 'cancel')))) and o.x_studio_approbations != 'Validée'
     )"/>
 
             <!-- ── Phase 1 : collecte des semaines uniques ──
