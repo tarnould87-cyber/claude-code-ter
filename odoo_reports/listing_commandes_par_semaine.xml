@@ -14,6 +14,7 @@
     <t t-set="filtered_docs" t-value="env['sale.order'].search([
         ('state', 'in', ['sale', 'done']),
         ('invoice_status', 'not in', ['invoiced', 'upselling']),
+        ('x_studios_approbations', '!=', 'validé'),
     ], order='name').filtered(
         lambda o: not o.mrp_production_ids
             or bool(o.mrp_production_ids.filtered(lambda mo: mo.state not in ('done', 'cancel')))
