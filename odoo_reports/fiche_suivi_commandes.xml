@@ -49,15 +49,16 @@
             <thead>
                 <tr style="background-color: #ddeeff; color: #1a3a52;">
                     <th style="width: 6%;  text-align: center; padding: 4px;">N° Cde</th>
-                    <th style="width: 5%;  text-align: center; padding: 4px;">Date</th>
-                    <th style="width: 10%; padding: 4px;">Société</th>
-                    <th style="width: 11%; padding: 4px;">Réf. client</th>
+                    <th style="width: 4%;  text-align: center; padding: 4px;">Date</th>
+                    <th style="width: 9%;  padding: 4px;">Société</th>
+                    <th style="width: 9%;  padding: 4px;">Réf. client</th>
                     <th style="width: 6%;  text-align: center; padding: 4px;">Échéance</th>
-                    <th style="width: 8%;  padding: 4px;">N° OF</th>
-                    <th style="width: 16%; padding: 4px;">Produit (OF)</th>
-                    <th style="width: 12%; padding: 4px;">État OF</th>
-                    <th style="width: 8%;  text-align: center; padding: 4px;">Livraison</th>
+                    <th style="width: 7%;  padding: 4px;">N° OF</th>
+                    <th style="width: 14%; padding: 4px;">Produit (OF)</th>
+                    <th style="width: 11%; padding: 4px;">État OF</th>
+                    <th style="width: 7%;  text-align: center; padding: 4px;">Livraison</th>
                     <th style="width: 8%;  text-align: center; padding: 4px;">Approbations</th>
+                    <th style="width: 7%;  text-align: right;  padding: 4px;">Montant HT</th>
                 </tr>
             </thead>
 
@@ -156,7 +157,7 @@
                         </td>
 
                         <!-- Réf. client -->
-                        <td style="padding: 3px 4px;">
+                        <td style="padding: 3px 4px; font-size: 8px;">
                             <t t-esc="order.client_order_ref or '-'"/>
                         </td>
 
@@ -232,6 +233,11 @@
                             <span t-att-style="_appro_col">
                                 <t t-esc="_appro or 'En cours'"/>
                             </span>
+                        </td>
+
+                        <!-- Montant HT -->
+                        <td style="padding: 3px 4px; text-align: right; white-space: nowrap;">
+                            <t t-esc="'{:,.2f}'.format(order.amount_untaxed).replace(',', ' ')"/> €
                         </td>
 
                     </tr>
