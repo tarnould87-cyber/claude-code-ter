@@ -1,9 +1,20 @@
 <t t-name="studio_customization.fiche_suivi_commandes">
 <t t-call="web.basic_layout">
 
+    <!-- Orientation paysage -->
+    <style>
+        @page { size: A4 landscape; margin: 12mm 10mm; }
+    </style>
+
     <!-- ── Variables globales ── -->
     <t t-set="edition_dt" t-value="context_timestamp(datetime.datetime.now())"/>
     <t t-set="today_date"  t-value="edition_dt.date()"/>
+
+    <!-- ── Filtrage des commandes sélectionnées ──
+         Exclus : annulées, devis/brouillon, totalement facturées, opportunité incitative.
+         Conservées : confirmées/verrouillées avec facturation nulle ou partielle.
+    -->
+    <t t-set="filtered_docs" t-value="docs.filtered(lambda o: o.state in ('sale', 'done') and o.invoice_status not in ('invoiced', 'upselling'))"/>
 
     <div class="page">
 
@@ -18,7 +29,7 @@
                     <t t-esc="edition_dt.strftime('%H:%M')"/>
                 </strong>
                 &#160;|&#160;
-                <t t-esc="len(docs)"/> commande(s) sélectionnée(s)
+                <t t-esc="len(filtered_docs)"/> commande(s)
             </div>
         </div>
 
@@ -36,21 +47,21 @@
                style="width: 100%; font-size: 10px; border-collapse: collapse; margin-top: 4px;">
 
             <thead>
-                <tr style="background-color: #1a5276; color: white;">
+                <tr style="background-color: #ddeeff; color: #1a3a52;">
                     <th style="width: 7%;  text-align: center; padding: 4px;">N° Cde</th>
                     <th style="width: 5%;  text-align: center; padding: 4px;">Date</th>
                     <th style="width: 11%; padding: 4px;">Société</th>
                     <th style="width: 14%; padding: 4px;">Réf. client</th>
                     <th style="width: 7%;  text-align: center; padding: 4px;">Échéance</th>
-                    <th style="width: 13%; padding: 4px;">N° OF</th>
+                    <th style="width: 11%; padding: 4px;">N° OF</th>
+                    <th style="width: 16%; padding: 4px;">État OF</th>
                     <th style="width: 9%;  text-align: center; padding: 4px;">Livraison</th>
-                    <th style="width: 9%;  text-align: center; padding: 4px;">Approbations</th>
-                    <th style="width: 25%; padding: 4px;">État OF</th>
+                    <th style="width: 10%; text-align: center; padding: 4px;">Approbations</th>
                 </tr>
             </thead>
 
             <tbody>
-                <t t-foreach="docs" t-as="order">
+                <t t-foreach="filtered_docs" t-as="order">
 
                     <!-- ── Calcul échéance ── -->
                     <t t-set="_mo_dl" t-value="order.mrp_production_ids.filtered(lambda mo: mo.date_deadline and mo.state not in ('done','cancel'))"/>
@@ -166,21 +177,7 @@
                             <t t-else="">-</t>
                         </td>
 
-                        <!-- État livraison -->
-                        <td style="padding: 3px 4px; text-align: center;">
-                            <span t-att-style="_liv_col">
-                                <t t-esc="_liv_label"/>
-                            </span>
-                        </td>
-
-                        <!-- Approbations -->
-                        <td style="padding: 3px 4px; text-align: center;">
-                            <span t-att-style="_appro_col">
-                                <t t-esc="_appro or 'En cours'"/>
-                            </span>
-                        </td>
-
-                        <!-- État OF -->
+                        <!-- État OF (avant Livraison) -->
                         <td style="padding: 3px 4px;">
                             <t t-if="order.mrp_production_ids">
                                 <t t-foreach="order.mrp_production_ids" t-as="mo">
@@ -211,9 +208,23 @@
                             <t t-else="">-</t>
                         </td>
 
+                        <!-- Livraison -->
+                        <td style="padding: 3px 4px; text-align: center;">
+                            <span t-att-style="_liv_col">
+                                <t t-esc="_liv_label"/>
+                            </span>
+                        </td>
+
+                        <!-- Approbations -->
+                        <td style="padding: 3px 4px; text-align: center;">
+                            <span t-att-style="_appro_col">
+                                <t t-esc="_appro or 'En cours'"/>
+                            </span>
+                        </td>
+
                     </tr>
 
-                </t><!-- fin docs -->
+                </t><!-- fin filtered_docs -->
             </tbody>
 
         </table>
