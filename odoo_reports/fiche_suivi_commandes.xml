@@ -48,15 +48,16 @@
 
             <thead>
                 <tr style="background-color: #ddeeff; color: #1a3a52;">
-                    <th style="width: 7%;  text-align: center; padding: 4px;">N° Cde</th>
+                    <th style="width: 6%;  text-align: center; padding: 4px;">N° Cde</th>
                     <th style="width: 5%;  text-align: center; padding: 4px;">Date</th>
-                    <th style="width: 11%; padding: 4px;">Société</th>
-                    <th style="width: 14%; padding: 4px;">Réf. client</th>
-                    <th style="width: 7%;  text-align: center; padding: 4px;">Échéance</th>
-                    <th style="width: 11%; padding: 4px;">N° OF</th>
-                    <th style="width: 16%; padding: 4px;">État OF</th>
-                    <th style="width: 9%;  text-align: center; padding: 4px;">Livraison</th>
-                    <th style="width: 10%; text-align: center; padding: 4px;">Approbations</th>
+                    <th style="width: 10%; padding: 4px;">Société</th>
+                    <th style="width: 11%; padding: 4px;">Réf. client</th>
+                    <th style="width: 6%;  text-align: center; padding: 4px;">Échéance</th>
+                    <th style="width: 8%;  padding: 4px;">N° OF</th>
+                    <th style="width: 16%; padding: 4px;">Produit (OF)</th>
+                    <th style="width: 12%; padding: 4px;">État OF</th>
+                    <th style="width: 8%;  text-align: center; padding: 4px;">Livraison</th>
+                    <th style="width: 8%;  text-align: center; padding: 4px;">Approbations</th>
                 </tr>
             </thead>
 
@@ -171,6 +172,17 @@
                             <t t-if="order.mrp_production_ids">
                                 <t t-foreach="order.mrp_production_ids" t-as="mo">
                                     <t t-esc="mo.name"/>
+                                    <t t-if="not mo_last"><br/></t>
+                                </t>
+                            </t>
+                            <t t-else="">-</t>
+                        </td>
+
+                        <!-- Produit (OF) -->
+                        <td style="padding: 3px 4px;">
+                            <t t-if="order.mrp_production_ids">
+                                <t t-foreach="order.mrp_production_ids" t-as="mo">
+                                    <t t-esc="mo.product_id.name if mo.product_id else '-'"/>
                                     <t t-if="not mo_last"><br/></t>
                                 </t>
                             </t>
