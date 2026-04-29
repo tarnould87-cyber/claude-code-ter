@@ -119,6 +119,7 @@
                                 <!-- OF de cette commande dans cette semaine -->
                                 <t t-set="_wmos" t-value="order.mrp_production_ids.filtered(
                                     lambda mo: mo.date_deadline and
+                                    mo.state not in ('done', 'cancel') and
                                     mo.date_deadline.isocalendar()[0] * 100 + mo.date_deadline.isocalendar()[1] == week_key
                                 )"/>
 
