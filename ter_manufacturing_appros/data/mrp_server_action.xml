@@ -8,10 +8,7 @@
         <field name="binding_model_id" ref="mrp.model_mrp_production"/>
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
-        <field name="code">
-for record in records:
-    record.x_studio_appros = True
-        </field>
+        <field name="code">records.write({'x_studio_appros': True})</field>
     </record>
 
     <!-- Action serveur : Démarquer Appros (décocher x_studio_appros = False) -->
@@ -21,10 +18,7 @@ for record in records:
         <field name="binding_model_id" ref="mrp.model_mrp_production"/>
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
-        <field name="code">
-for record in records:
-    record.x_studio_appros = False
-        </field>
+        <field name="code">records.write({'x_studio_appros': False})</field>
     </record>
 
 </odoo>
