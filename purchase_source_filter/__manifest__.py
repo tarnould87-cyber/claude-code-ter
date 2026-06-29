@@ -4,7 +4,7 @@
     'summary': 'Restreint le champ Source des achats aux commandes ventes non facturées depuis plus de 3 mois',
     'author': 'Technique et Réalisation',
     'category': 'Purchase',
-    'depends': ['purchase', 'sale'],
+    'depends': ['purchase', 'sale', 'hr_timesheet'],
     'data': [
         'views/purchase_order_views.xml',
     ],
