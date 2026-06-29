@@ -15,11 +15,12 @@ class PurchaseOrder(models.Model):
         # Cutoff: sale orders invoiced BEFORE this date are excluded
         cutoff = fields.Date.today() - relativedelta(months=3)
         # Show orders that are either:
-        #   - not fully invoiced, OR
-        #   - have at least one invoice posted on or after the cutoff
+        #   - not considered fully invoiced (status 'invoiced' AND 'upselling'
+        #     both mean the order is fully invoiced), OR
+        #   - have at least one invoice dated on or after the cutoff
         domain = str([
             '|',
-            ('invoice_status', '!=', 'invoiced'),
+            ('invoice_status', 'not in', ['invoiced', 'upselling']),
             ('invoice_ids.invoice_date', '>=', cutoff.strftime('%Y-%m-%d')),
         ])
         for record in self:
