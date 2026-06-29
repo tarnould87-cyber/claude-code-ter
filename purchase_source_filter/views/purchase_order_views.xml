@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Surcharge de la vue formulaire purchase.order pour restreindre
+        le champ x_studio_source aux commandes ventes non facturées
+        depuis plus de 3 mois.
+    -->
+    <record id="purchase_order_form_source_filter" model="ir.ui.view">
+        <field name="name">purchase.order.form.source.filter</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='x_studio_source']" position="attributes">
+                <attribute name="domain">x_studio_source_domain</attribute>
+                <attribute name="options">{"no_open": false}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Même filtre sur la vue RFQ (demande de prix) -->
+    <record id="purchase_rfq_form_source_filter" model="ir.ui.view">
+        <field name="name">purchase.rfq.form.source.filter</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_rfq_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='x_studio_source']" position="attributes">
+                <attribute name="domain">x_studio_source_domain</attribute>
+                <attribute name="options">{"no_open": false}</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
