@@ -16,14 +16,17 @@ class PurchaseOrder(models.Model):
         today = fields.Date.today()
         cutoff_invoice = today - relativedelta(months=3)
         cutoff_quotation = today - relativedelta(months=8)
-        # Keep an order only if BOTH blocks are true:
-        #   1. Invoice block: not considered fully invoiced ('invoiced' and
+        # Keep an order only if ALL blocks are true:
+        #   1. Not cancelled.
+        #   2. Invoice block: not considered fully invoiced ('invoiced' and
         #      'upselling' both mean fully invoiced), OR an invoice dated within
         #      the last 3 months.
-        #   2. Quotation block: not a draft/sent quotation, OR ordered within
+        #   3. Quotation block: not a draft/sent quotation, OR ordered within
         #      the last 8 months.
         domain = str([
             '&',
+            '&',
+            ('state', '!=', 'cancel'),
             '|',
             ('invoice_status', 'not in', ['invoiced', 'upselling']),
             ('invoice_ids.invoice_date', '>=', cutoff_invoice.strftime('%Y-%m-%d')),
