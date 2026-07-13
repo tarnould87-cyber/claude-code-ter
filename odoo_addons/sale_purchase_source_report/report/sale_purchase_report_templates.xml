@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_sale_purchase_source_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="order">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>
+                            Suivi achats - Commande client
+                            <span t-field="order.name"/>
+                        </h2>
+
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <strong>Client :</strong>
+                                <span t-field="order.partner_id.name"/><br/>
+                                <strong>Date commande :</strong>
+                                <span t-field="order.date_order" t-options="{'widget': 'date'}"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Vendeur :</strong>
+                                <span t-field="order.user_id.name"/><br/>
+                                <strong>Montant total commande :</strong>
+                                <span t-field="order.amount_total"
+                                      t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                            </div>
+                        </div>
+
+                        <t t-if="order.x_studio_purchase_order_ids">
+                            <table class="table table-sm o_main_table">
+                                <thead>
+                                    <tr>
+                                        <th>N° commande fournisseur</th>
+                                        <th>Fournisseur</th>
+                                        <th>Statut</th>
+                                        <th>Date confirmation</th>
+                                        <th>Arrivée prévue</th>
+                                        <th class="text-end">Montant HT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="order.x_studio_purchase_order_ids.sorted('name')" t-as="po">
+                                        <td><span t-field="po.name"/></td>
+                                        <td><span t-field="po.partner_id.name"/></td>
+                                        <td>
+                                            <span t-esc="dict(po._fields['state'].selection).get(po.state, po.state)"/>
+                                        </td>
+                                        <td><span t-field="po.date_order" t-options="{'widget': 'date'}"/></td>
+                                        <td><span t-field="po.date_planned" t-options="{'widget': 'date'}"/></td>
+                                        <td class="text-end">
+                                            <span t-field="po.amount_untaxed"
+                                                  t-options="{'widget': 'monetary', 'display_currency': po.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="5" class="text-end"><strong>Total</strong></td>
+                                        <td class="text-end">
+                                            <strong>
+                                                <t t-esc="sum(order.x_studio_purchase_order_ids.mapped('amount_untaxed'))"/>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </t>
+                        <t t-else="">
+                            <p>Aucune demande de prix ni commande fournisseur liée à cette commande.</p>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

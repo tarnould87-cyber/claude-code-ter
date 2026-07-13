@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_sale_purchase_source" model="ir.actions.report">
+        <field name="name">Suivi achats liés</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sale_purchase_source_report.report_sale_purchase_source_document</field>
+        <field name="report_file">sale_purchase_source_report.report_sale_purchase_source_document</field>
+        <field name="print_report_name">'Suivi Achats - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

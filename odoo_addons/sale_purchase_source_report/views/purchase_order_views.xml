@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Ajoute un groupby "Commande client (Source)" au filtre de recherche
+         standard des commandes fournisseurs -->
+    <record id="purchase_order_search_view_source" model="ir.ui.view">
+        <field name="name">purchase.order.search.source</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="inside">
+                <filter string="Commande client (Source)" name="group_by_source"
+                        context="{'group_by': 'x_studio_source'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Vue liste globale : tous les achats groupés par commande client -->
+    <record id="action_purchase_order_by_source" model="ir.actions.act_window">
+        <field name="name">Achats par commande client</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_by_source': 1}</field>
+    </record>
+
+    <menuitem id="menu_purchase_order_by_source"
+              name="Achats par commande client"
+              parent="purchase.menu_purchase_root"
+              action="action_purchase_order_by_source"
+              sequence="90"/>
+
+</odoo>
